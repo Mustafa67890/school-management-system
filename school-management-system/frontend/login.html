@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Management System - Login</title>
+    <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/ionicons/7.1.0/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script src="js/api-client.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f0f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .logo ion-icon {
+            color: white;
+            font-size: 24px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #4CAF50;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #aaa;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #4CAF50;
+        }
+
+        .login-button {
+            width: 100%;
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .loading.active {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Forgot Password Link */
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .reset-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .reset-button:hover {
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 300px;
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, #17a2b8, #3498db);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Demo credentials info */
+        .demo-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .demo-info h4 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .demo-info .credential {
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .demo-info .credential strong {
+            color: #333;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+            
+            .notification {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-container">
+            <div class="logo">
+                <ion-icon name="person"></ion-icon>
+            </div>
+            <h2 class="login-title">Login</h2>
+            <p class="login-subtitle">Sign in to continue</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-input" 
+                    placeholder="Enter your username"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-container">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="••••••••"
+                        required
+                    >
+                    <ion-icon name="eye-outline" class="password-toggle" id="passwordToggle"></ion-icon>
+                </div>
+            </div>
+
+            <button type="submit" class="login-button" id="loginBtn">
+                <ion-icon name="reload-outline" class="loading" id="loadingIcon"></ion-icon>
+                <span id="buttonText">Sign In</span>
+            </button>
+            
+            <div class="forgot-password">
+                <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+            </div>
+        </form>
+        
+        <!-- Demo Credentials Info -->
+        <div class="demo-info">
+            <h4><ion-icon name="information-circle"></ion-icon> Demo Credentials</h4>
+            <div class="credential"><strong>Admin:</strong> admin / admin123</div>
+            <div class="credential"><strong>Teacher:</strong> teacher / teacher123</div>
+            <div class="credential"><strong>Accountant:</strong> accountant / account123</div>
+            <div class="credential"><strong>Head Teacher:</strong> headteacher / head123</div>
+        </div>
+        
+        <!-- Forgot Password Modal -->
+        <div id="forgotPasswordModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Reset Password</h3>
+                    <span class="close" id="closeModal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="forgotPasswordForm">
+                        <div class="form-group">
+                            <label for="resetEmail" class="form-label">Email Address</label>
+                            <input 
+                                type="email" 
+                                id="resetEmail" 
+                                name="resetEmail" 
+                                class="form-input" 
+                                placeholder="Enter your email address"
+                                required
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="resetPhone" class="form-label">Phone Number</label>
+                            <input 
+                                type="tel" 
+                                id="resetPhone" 
+                                name="resetPhone" 
+                                class="form-input" 
+                                placeholder="Enter your phone number"
+                                required
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="resetUsername" class="form-label">Username</label>
+                            <input 
+                                type="text" 
+                                id="resetUsername" 
+                                name="resetUsername" 
+                                class="form-input" 
+                                placeholder="Enter your username"
+                                required
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="securityQuestion" class="form-label">Security Question</label>
+                            <select id="securityQuestion" name="securityQuestion" class="form-input" required>
+                                <option value="">Select a security question</option>
+                                <option value="mother_maiden">What is your mother's maiden name?</option>
+                                <option value="first_pet">What was the name of your first pet?</option>
+                                <option value="birth_city">In which city were you born?</option>
+                                <option value="first_school">What was the name of your first school?</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="securityAnswer" class="form-label">Security Answer</label>
+                            <input 
+                                type="text" 
+                                id="securityAnswer" 
+                                name="securityAnswer" 
+                                class="form-input" 
+                                placeholder="Enter your answer"
+                                required
+                            >
+                        </div>
+                        
+                        <button type="submit" class="reset-button" id="resetBtn">
+                            <ion-icon name="reload-outline" class="loading" id="resetLoadingIcon"></ion-icon>
+                            <span id="resetButtonText">Send Reset Instructions</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Notification function
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notification => notification.remove());
+            
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            // Add to page
+            document.body.appendChild(notification);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 4000);
+        }
+
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.authManager && window.authManager.isAuthenticated()) {
+                // User is already logged in, redirect to dashboard
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Password visibility toggle
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('passwordToggle');
+
+        passwordToggle.addEventListener('click', function() {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.name = 'eye-off-outline';
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.name = 'eye-outline';
+            }
+        });
+
+        // Form submission handling
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const loadingIcon = document.getElementById('loadingIcon');
+        const buttonText = document.getElementById('buttonText');
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Validate inputs
+            if (!username || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+
+            // Show loading state
+            loginBtn.disabled = true;
+            loadingIcon.classList.add('active');
+            buttonText.textContent = 'Signing In...';
+
+            // Try API authentication first, fallback to demo auth
+            authenticateUser(username, password);
+        });
+
+        // Authentication function with API integration
+        async function authenticateUser(username, password) {
+            try {
+                // Try API authentication first
+                const response = await window.apiClient.login(username, password);
+                
+                if (response.success && response.data) {
+                    const userData = response.data.user;
+                    
+                    // Update auth manager with API user data
+                    const authResult = window.authManager.setUserFromAPI({
+                        id: userData.id,
+                        username: userData.username,
+                        fullName: userData.full_name,
+                        email: userData.email,
+                        role: userData.role,
+                        permissions: getPermissionsForRole(userData.role)
+                    });
+                    
+                    if (authResult.success) {
+                        // Show success message
+                        showNotification(`Welcome back, ${userData.full_name}!`, 'success');
+                        
+                        // Check if there's a redirect URL
+                        const redirectUrl = window.authManager.getRedirectAfterLogin();
+                        
+                        // Redirect to dashboard or saved URL
+                        setTimeout(() => {
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            } else {
+                                window.location.href = 'index.html'; // Main dashboard
+                            }
+                        }, 1000);
+                        return;
+                    }
+                }
+                
+            } catch (error) {
+                console.warn('API authentication failed, trying demo auth:', error);
+                
+                // Fallback to demo authentication
+                setTimeout(() => {
+                    const authResult = window.authManager.authenticate(username, password);
+                    
+                    if (authResult.success) {
+                        // Show success message
+                        showNotification(`Welcome back, ${authResult.user.fullName}! (Demo Mode)`, 'success');
+                        
+                        // Check if there's a redirect URL
+                        const redirectUrl = window.authManager.getRedirectAfterLogin();
+                        
+                        // Redirect to dashboard or saved URL
+                        setTimeout(() => {
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            } else {
+                                window.location.href = 'index.html'; // Main dashboard
+                            }
+                        }, 1000);
+                    } else {
+                        // Reset button state
+                        loginBtn.disabled = false;
+                        loadingIcon.classList.remove('active');
+                        buttonText.textContent = 'Sign In';
+                        
+                        // Show error message
+                        showNotification(authResult.message, 'error');
+                    }
+                }, 500);
+                return;
+            }
+            
+            // If we get here, both API and demo auth failed
+            loginBtn.disabled = false;
+            loadingIcon.classList.remove('active');
+            buttonText.textContent = 'Sign In';
+            showNotification('Authentication failed. Please check your credentials.', 'error');
+        }
+
+        // Get permissions for role (helper function)
+        function getPermissionsForRole(role) {
+            const rolePermissions = {
+                'admin': ['students', 'fees', 'staff', 'payroll', 'procurement', 'reports', 'settings'],
+                'head_teacher': ['students', 'fees', 'staff', 'payroll', 'procurement', 'reports'],
+                'teacher': ['students', 'fees_read', 'reports'],
+                'accountant': ['fees', 'payroll', 'procurement', 'reports']
+            };
+            
+            return rolePermissions[role] || [];
+        }
+
+    // Forgot Password Modal Functionality
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    const closeModal = document.getElementById('closeModal');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    const resetBtn = document.getElementById('resetBtn');
+    const resetLoadingIcon = document.getElementById('resetLoadingIcon');
+    const resetButtonText = document.getElementById('resetButtonText');
+
+    // Open modal
+    forgotPasswordLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        forgotPasswordModal.style.display = 'block';
+    });
+
+    // Close modal
+    closeModal.addEventListener('click', function() {
+        forgotPasswordModal.style.display = 'none';
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === forgotPasswordModal) {
+            forgotPasswordModal.style.display = 'none';
+        }
+    });
+
+    // Handle forgot password form submission
+    forgotPasswordForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const resetEmail = document.getElementById('resetEmail').value;
+        const resetPhone = document.getElementById('resetPhone').value;
+        const resetUsername = document.getElementById('resetUsername').value;
+        const securityQuestion = document.getElementById('securityQuestion').value;
+        const securityAnswer = document.getElementById('securityAnswer').value;
+
+        // Validate inputs
+        if (!resetEmail || !resetPhone || !resetUsername || !securityQuestion || !securityAnswer) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        // Show loading state
+        resetBtn.disabled = true;
+        resetLoadingIcon.classList.add('active');
+        resetButtonText.textContent = 'Processing...';
+
+        // Simulate password reset process
+        setTimeout(() => {
+            // Reset button state
+            resetBtn.disabled = false;
+            resetLoadingIcon.classList.remove('active');
+            resetButtonText.textContent = 'Send Reset Instructions';
+
+            // Show success message
+            alert('Password reset instructions have been sent to your email and phone number. Please check your messages.');
+            
+            // Close modal and reset form
+            forgotPasswordModal.style.display = 'none';
+            forgotPasswordForm.reset();
+        }, 2000);
+    });
+
+    // Input focus animations
+    const inputs = document.querySelectorAll('.form-input');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'scale(1.02)';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

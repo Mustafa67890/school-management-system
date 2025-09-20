@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Management API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .endpoint {
+            background: #ecf0f1;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .endpoint h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .endpoint p {
+            margin: 5px 0;
+            color: #7f8c8d;
+        }
+        .test-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .test-btn:hover {
+            background: #2980b9;
+        }
+        .result {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #27ae60;
+            color: white;
+        }
+        .status.error {
+            background: #e74c3c;
+            color: white;
+        }
+        .status.pending {
+            background: #f39c12;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏫 School Management System API Test</h1>
+        <p style="text-align: center; color: #7f8c8d; margin-bottom: 30px;">
+            Test the backend API endpoints to ensure everything is working correctly.
+        </p>
+
+        <div class="endpoint">
+            <h3>API Information</h3>
+            <p><strong>GET</strong> /</p>
+            <p>Get basic API information and available endpoints</p>
+            <button class="test-btn" onclick="testEndpoint('/', 'api-info')">Test API Info</button>
+            <div id="api-info-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>Health Check</h3>
+            <p><strong>GET</strong> /api/health</p>
+            <p>Check API health and database connection status</p>
+            <button class="test-btn" onclick="testEndpoint('/api/health', 'health')">Test Health Check</button>
+            <div id="health-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>Authentication</h3>
+            <p><strong>POST</strong> /api/auth/login</p>
+            <p>Test user authentication with demo credentials</p>
+            <button class="test-btn" onclick="testLogin()">Test Login</button>
+            <div id="auth-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>Students API</h3>
+            <p><strong>GET</strong> /api/students</p>
+            <p>Get list of students (requires authentication)</p>
+            <button class="test-btn" onclick="testEndpoint('/api/students', 'students')">Test Students API</button>
+            <div id="students-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>Reports Dashboard</h3>
+            <p><strong>GET</strong> /api/reports/dashboard-stats</p>
+            <p>Get dashboard statistics and reports</p>
+            <button class="test-btn" onclick="testEndpoint('/api/reports/dashboard-stats', 'reports')">Test Reports API</button>
+            <div id="reports-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let authToken = null;
+
+        async function testEndpoint(endpoint, resultId) {
+            const resultDiv = document.getElementById(resultId + '-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="status pending">TESTING...</span>\n\nSending request to: ' + API_BASE + endpoint;
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                if (authToken) {
+                    headers['Authorization'] = 'Bearer ' + authToken;
+                }
+
+                const response = await fetch(API_BASE + endpoint, {
+                    method: 'GET',
+                    headers: headers
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '<span class="status success">SUCCESS (' + response.status + ')</span>\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.innerHTML = '<span class="status error">ERROR (' + response.status + ')</span>\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="status error">NETWORK ERROR</span>\n\n' + error.message;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="status pending">TESTING...</span>\n\nTesting login with demo credentials...';
+
+            try {
+                const response = await fetch(API_BASE + '/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    authToken = data.token;
+                    resultDiv.innerHTML = '<span class="status success">LOGIN SUCCESS (' + response.status + ')</span>\n\nToken saved for subsequent requests.\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.innerHTML = '<span class="status error">LOGIN FAILED (' + response.status + ')</span>\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="status error">NETWORK ERROR</span>\n\n' + error.message;
+            }
+        }
+
+        // Test API info on page load
+        window.onload = function() {
+            testEndpoint('/', 'api-info');
+        };
+    </script>
+</body>
+</html>

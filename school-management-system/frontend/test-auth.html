@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test - School Management System</title>
+    <script src="js/auth-manager.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .credentials {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .credentials h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .credential-item {
+            margin: 5px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔐 School Management System - Authentication Test</h1>
+        <p>This page tests the authentication system functionality.</p>
+        
+        <div class="credentials">
+            <h4>Test Credentials:</h4>
+            <div class="credential-item"><strong>Admin:</strong> admin / admin123</div>
+            <div class="credential-item"><strong>Teacher:</strong> teacher / teacher123</div>
+            <div class="credential-item"><strong>Accountant:</strong> accountant / account123</div>
+            <div class="credential-item"><strong>Head Teacher:</strong> headteacher / head123</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>1. Authentication System Status</h3>
+            <div id="authStatus"></div>
+            <button onclick="checkAuthStatus()">Check Auth Status</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Login Test</h3>
+            <div>
+                <input type="text" id="testUsername" placeholder="Username" value="admin">
+                <input type="password" id="testPassword" placeholder="Password" value="admin123">
+                <button onclick="testLogin()">Test Login</button>
+            </div>
+            <div id="loginResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Session Information</h3>
+            <div id="sessionInfo"></div>
+            <button onclick="showSessionInfo()">Show Session Info</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. User Information</h3>
+            <div id="userInfo"></div>
+            <button onclick="showUserInfo()">Show User Info</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. Permission Test</h3>
+            <div id="permissionTest"></div>
+            <button onclick="testPermissions()">Test Permissions</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>6. Navigation Test</h3>
+            <div>
+                <button onclick="testNavigation('index.html')">Go to Dashboard</button>
+                <button onclick="testNavigation('modules/student-module.html')">Go to Students</button>
+                <button onclick="testNavigation('modules/fees-payment.html')">Go to Fees</button>
+                <button onclick="testNavigation('modules/staff-payroll.html')">Go to Staff</button>
+                <button onclick="testNavigation('modules/procurement.html')">Go to Procurement</button>
+                <button onclick="testNavigation('modules/reports.html')">Go to Reports</button>
+                <button onclick="testNavigation('modules/settings.html')">Go to Settings</button>
+            </div>
+            <div id="navigationResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>7. Logout Test</h3>
+            <div>
+                <button onclick="testLogout()">Test Logout</button>
+            </div>
+            <div id="logoutResult"></div>
+        </div>
+    </div>
+
+    <script>
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="test-result ${type}">${message}</div>`;
+        }
+        
+        function checkAuthStatus() {
+            try {
+                const isAuth = window.authManager.isAuthenticated();
+                const session = window.authManager.getSession();
+                const user = window.authManager.getCurrentUser();
+                
+                let status = `
+                    <strong>Authentication Status:</strong> ${isAuth ? '✅ Authenticated' : '❌ Not Authenticated'}<br>
+                    <strong>Session Exists:</strong> ${session ? '✅ Yes' : '❌ No'}<br>
+                    <strong>User Data:</strong> ${user ? '✅ Available' : '❌ Not Available'}
+                `;
+                
+                showResult('authStatus', status, isAuth ? 'success' : 'error');
+            } catch (error) {
+                showResult('authStatus', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testLogin() {
+            const username = document.getElementById('testUsername').value;
+            const password = document.getElementById('testPassword').value;
+            
+            if (!username || !password) {
+                showResult('loginResult', 'Please enter username and password', 'error');
+                return;
+            }
+            
+            try {
+                const result = window.authManager.authenticate(username, password);
+                
+                if (result.success) {
+                    showResult('loginResult', `
+                        ✅ Login Successful!<br>
+                        <strong>User:</strong> ${result.user.fullName}<br>
+                        <strong>Role:</strong> ${result.user.role}<br>
+                        <strong>Email:</strong> ${result.user.email}
+                    `, 'success');
+                } else {
+                    showResult('loginResult', `❌ Login Failed: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('loginResult', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showSessionInfo() {
+            try {
+                const session = window.authManager.getSession();
+                
+                if (session) {
+                    const loginTime = new Date(session.loginTime).toLocaleString();
+                    const expiresAt = new Date(session.expiresAt).toLocaleString();
+                    const timeLeft = Math.round((new Date(session.expiresAt) - new Date()) / 1000 / 60);
+                    
+                    showResult('sessionInfo', `
+                        <strong>User ID:</strong> ${session.userId}<br>
+                        <strong>Username:</strong> ${session.username}<br>
+                        <strong>Role:</strong> ${session.role}<br>
+                        <strong>Login Time:</strong> ${loginTime}<br>
+                        <strong>Expires At:</strong> ${expiresAt}<br>
+                        <strong>Time Left:</strong> ${timeLeft} minutes
+                    `, 'success');
+                } else {
+                    showResult('sessionInfo', 'No active session found', 'error');
+                }
+            } catch (error) {
+                showResult('sessionInfo', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showUserInfo() {
+            try {
+                const user = window.authManager.getCurrentUser();
+                
+                if (user) {
+                    showResult('userInfo', `
+                        <strong>ID:</strong> ${user.id}<br>
+                        <strong>Full Name:</strong> ${user.fullName}<br>
+                        <strong>Username:</strong> ${user.username}<br>
+                        <strong>Role:</strong> ${user.role}<br>
+                        <strong>Email:</strong> ${user.email}<br>
+                        <strong>Permissions:</strong> ${user.permissions.join(', ')}
+                    `, 'success');
+                } else {
+                    showResult('userInfo', 'No user data found', 'error');
+                }
+            } catch (error) {
+                showResult('userInfo', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testPermissions() {
+            try {
+                const permissions = ['students', 'fees', 'payroll', 'procurement', 'reports', 'all'];
+                let results = '<strong>Permission Test Results:</strong><br>';
+                
+                permissions.forEach(permission => {
+                    const hasPermission = window.authManager.hasPermission(permission);
+                    results += `${permission}: ${hasPermission ? '✅ Allowed' : '❌ Denied'}<br>`;
+                });
+                
+                showResult('permissionTest', results, 'info');
+            } catch (error) {
+                showResult('permissionTest', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testNavigation(url) {
+            showResult('navigationResult', `Testing navigation to: ${url}`, 'info');
+            
+            // Test if authentication would allow access
+            if (window.authManager.isAuthenticated()) {
+                showResult('navigationResult', `✅ Navigation to ${url} would be allowed (user is authenticated)`, 'success');
+                
+                // Optionally navigate (commented out for testing)
+                // window.location.href = url;
+            } else {
+                showResult('navigationResult', `❌ Navigation to ${url} would redirect to login (user not authenticated)`, 'error');
+            }
+        }
+        
+        function testLogout() {
+            try {
+                if (window.authManager.isAuthenticated()) {
+                    showResult('logoutResult', 'Logging out... (would redirect to login page)', 'info');
+                    
+                    // For testing, we'll just clear the session without redirecting
+                    localStorage.removeItem('sms_session');
+                    localStorage.removeItem('sms_user');
+                    
+                    setTimeout(() => {
+                        showResult('logoutResult', '✅ Logout successful! Session cleared.', 'success');
+                    }, 1000);
+                } else {
+                    showResult('logoutResult', 'No active session to logout from', 'error');
+                }
+            } catch (error) {
+                showResult('logoutResult', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+        });
+    </script>
+</body>
+</html>

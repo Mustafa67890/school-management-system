@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics Module - School Manager System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/modules/reports.css">
+    <link rel="stylesheet" href="../css/performance-styles.css">
+    <link id="theme-css" rel="stylesheet" href="../css/themes/light-theme.css">
+    <script src="../js/performance-optimizer.js"></script>
+    <script src="../js/auth-manager.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/global-navigation.js"></script>
+    <script src="../js/modules/reports-core.js"></script>
+    <script src="../js/modules/reports-functions.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.1.1/dist/chart.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="sidebar-header">
+                <h2>
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>School Manager</span>
+                </h2>
+            </div>
+            <div class="admin-profile">
+                <div class="admin-avatar">A</div>
+                <div class="admin-info">
+                    <h4>Admin User</h4>
+                    <p>Administrator</p>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-section">
+                    <div class="menu-section-title">Main Navigation</div>
+                    <a href="../index.html" class="menu-item" onclick="navigateToPage('../index.html')">
+                        <i class="fas fa-home"></i>
+                        <span data-translate="dashboard">Dashboard</span>
+                    </a>
+                    <a href="./student-module.html" class="menu-item" onclick="navigateToPage('./student-module.html')">
+                        <i class="fas fa-users"></i>
+                        <span data-translate="students">Students</span>
+                    </a>
+                    <a href="./fees-payment.html" class="menu-item" onclick="navigateToPage('./fees-payment.html')">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span data-translate="fees_payments">Fees & Payments</span>
+                    </a>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">Management</div>
+                    <a href="./staff-payroll.html" class="menu-item" onclick="navigateToPage('./staff-payroll.html')">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span data-translate="staff_payroll">Staff & Payroll</span>
+                    </a>
+                    <a href="./procurement.html" class="menu-item" onclick="navigateToPage('./procurement.html')">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span data-translate="procurement">Procurement</span>
+                    </a>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">System</div>
+                    <a href="./reports.html" class="menu-item active" onclick="navigateToPage('./reports.html')">
+                        <i class="fas fa-chart-bar"></i>
+                        <span data-translate="reports">Reports & Analytics</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <h1><i class="fas fa-chart-bar"></i><span data-translate="reports_analytics"> Reports & Analytics</span></h1>
+                </div>
+                <div class="header-right">
+                    <button class="language-toggle" onclick="toggleLanguage()">
+                        <i class="fas fa-language"></i>
+                        <span id="langText">EN</span>
+                    </button>
+                    <div class="current-time">
+                        <i class="fas fa-clock"></i>
+                        <span id="currentTime">Loading...</span>
+                    </div>
+                    <div class="user-profile" onclick="openModal('userProfileModal')">
+                        <img id="userProfileImage" class="user-avatar" src="" alt="Profile" style="display: none; width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Filters -->
+            <div class="global-filters">
+                <div class="filter-group">
+                    <label for="dateRangeStart">Date Range:</label>
+                    <input type="date" id="dateRangeStart" onchange="updateReports()">
+                    <span>to</span>
+                    <input type="date" id="dateRangeEnd" onchange="updateReports()">
+                </div>
+                <div class="filter-group">
+                    <label for="reportType">Report Type:</label>
+                    <select id="reportType" onchange="switchReportType()">
+                        <option value="overview">Overview</option>
+                        <option value="financial">Financial</option>
+                        <option value="payroll">Payroll</option>
+                        <option value="procurement">Procurement</option>
+                        <option value="students">Students</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button class="btn btn-primary" onclick="refreshAllData()">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportAllReports()">
+                        <i class="fas fa-download"></i> Export All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="card">
+                    <div class="card-icon revenue">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 id="totalRevenue">TZS 0</h3>
+                        <h3 data-translate="total_revenue">Total Revenue</h3>
+                        <span class="trend positive" id="revenueTrend">+0%</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon expenses">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 id="totalExpenses">TZS 0</h3>
+                        <h3 data-translate="total_expenses">Total Expenses</h3>
+                        <span class="trend negative" id="expensesTrend">+0%</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon payroll">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 id="totalPayroll">TZS 0</h3>
+                        <h3 data-translate="total_payroll">Total Payroll</h3>
+                        <span class="trend neutral" id="payrollTrend">+0%</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon outstanding">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 id="outstandingFees">TZS 0</h3>
+                        <h3 data-translate="outstanding_fees">Outstanding Fees</h3>
+                        <span class="trend negative" id="outstandingTrend">+0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchTab('overview')">
+                    <i class="fas fa-chart-line"></i>
+                    <span data-translate="overview">Overview</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('financial')">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span data-translate="financial">Financial</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('payroll')">
+                    <i class="fas fa-users"></i>
+                    <span data-translate="payroll">Payroll</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('procurement')">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span data-translate="procurement">Procurement</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('analytics')">
+                    <i class="fas fa-chart-bar"></i>
+                    <span data-translate="analytics">Analytics</span>
+                </button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overviewTab" class="tab-content active">
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 data-translate="monthly_revenue">Monthly Revenue Trend</h3>
+                            <div class="chart-controls">
+                                <button class="btn-small" onclick="toggleChartSeries('revenue', 'fees')">Fees</button>
+                                <button class="btn-small" onclick="toggleChartSeries('revenue', 'other')">Other</button>
+                                <button class="btn-small" onclick="exportChart('revenueChart', 'revenue-trend')">Export</button>
+                            </div>
+                        </div>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 data-translate="outstanding_over_time">Outstanding Fees Over Time</h3>
+                            <div class="chart-controls">
+                                <button class="btn-small" onclick="exportChart('outstandingChart', 'outstanding-fees')">Export</button>
+                            </div>
+                        </div>
+                        <canvas id="outstandingChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 data-translate="expense_breakdown">Expense Breakdown by Department</h3>
+                            <div class="chart-controls">
+                                <button class="btn-small" onclick="exportChart('expenseChart', 'expense-breakdown')">Export</button>
+                            </div>
+                        </div>
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 data-translate="top_unpaid_classes">Top Classes with Unpaid Fees</h3>
+                            <div class="chart-controls">
+                                <button class="btn-small" onclick="exportChart('unpaidClassesChart', 'unpaid-classes')">Export</button>
+                            </div>
+                        </div>
+                        <canvas id="unpaidClassesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Reports Tab -->
+            <div id="financialTab" class="tab-content">
+                <div class="report-section">
+                    <div class="section-header">
+                        <h3>Payment Reports</h3>
+                        <div class="section-filters">
+                            <select id="paymentClassFilter" onchange="filterPaymentReports()">
+                                <option value="">All Classes</option>
+                                <option value="Form 1">Form 1</option>
+                                <option value="Form 2">Form 2</option>
+                                <option value="Form 3">Form 3</option>
+                                <option value="Form 4">Form 4</option>
+                            </select>
+                            <select id="paymentTypeFilter" onchange="filterPaymentReports()">
+                                <option value="">All Fee Types</option>
+                                <option value="tuition">Tuition</option>
+                                <option value="boarding">Boarding</option>
+                                <option value="transport">Transport</option>
+                                <option value="uniform">Uniform</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="exportData('csv')" data-translate="export">Export</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="paymentReportsTable">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Class</th>
+                                    <th>Fee Type</th>
+                                    <th>Amount Due</th>
+                                    <th>Amount Paid</th>
+                                    <th>Outstanding</th>
+                                    <th>Last Payment</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentReportsBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-header">
+                        <h3>Fee Collection Summary</h3>
+                        <button class="btn btn-secondary" onclick="applyFilters()" data-translate="filter">Filter</button>
+                        <button class="btn btn-secondary" onclick="exportFeeCollectionSummary()">
+                            <i class="fas fa-file-excel"></i> Export to Excel
+                        </button>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h4>Monthly Fee Collection</h4>
+                            <canvas id="monthlyFeeChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Collection by Fee Type</h4>
+                            <canvas id="feeTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payroll Reports Tab -->
+            <div id="payrollTab" class="tab-content">
+                <div class="report-section">
+                    <div class="section-header">
+                        <h3>Salary Reports</h3>
+                        <div class="section-filters">
+                            <select id="payrollDepartmentFilter" onchange="filterPayrollReports()">
+                                <option value="">All Departments</option>
+                                <option value="Teaching">Teaching</option>
+                                <option value="Administration">Administration</option>
+                                <option value="Support">Support</option>
+                            </select>
+                            <select id="payrollMonthFilter" onchange="filterPayrollReports()">
+                                <option value="">All Months</option>
+                                <option value="2024-01">January 2024</option>
+                                <option value="2024-02">February 2024</option>
+                                <option value="2024-03">March 2024</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="exportPayrollReport()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="payrollReportsTable">
+                            <thead>
+                                <tr>
+                                    <th>Staff Name</th>
+                                    <th>Department</th>
+                                    <th>Position</th>
+                                    <th>Base Salary</th>
+                                    <th>Allowances</th>
+                                    <th>Deductions</th>
+                                    <th>Net Salary</th>
+                                    <th>Payment Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payrollReportsBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-header">
+                        <h3>Payroll Analytics</h3>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h4>Monthly Salary Costs</h4>
+                            <canvas id="monthlySalaryChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Department Wise Costs</h4>
+                            <canvas id="departmentCostChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Procurement Reports Tab -->
+            <div id="procurementTab" class="tab-content">
+                <div class="report-section">
+                    <div class="section-header">
+                        <h3>Procurement Spend Analysis</h3>
+                        <div class="section-filters">
+                            <select id="procurementDepartmentFilter" onchange="filterProcurementReports()">
+                                <option value="">All Departments</option>
+                                <option value="Science">Science</option>
+                                <option value="Library">Library</option>
+                                <option value="Administration">Administration</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                            <select id="procurementSupplierFilter" onchange="filterProcurementReports()">
+                                <option value="">All Suppliers</option>
+                                <option value="Stationery Plus Ltd">Stationery Plus Ltd</option>
+                                <option value="Science Equipment Co">Science Equipment Co</option>
+                                <option value="Library Books Suppliers">Library Books Suppliers</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="exportProcurementReport()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="procurementReportsTable">
+                            <thead>
+                                <tr>
+                                    <th>PO Number</th>
+                                    <th>Supplier</th>
+                                    <th>Department</th>
+                                    <th>Items</th>
+                                    <th>Budget Allocated</th>
+                                    <th>Amount Spent</th>
+                                    <th>Variance</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="procurementReportsBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-header">
+                        <h3>Budget Variance Analysis</h3>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h4>Budget vs Actual Spending</h4>
+                            <canvas id="budgetVarianceChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Supplier Performance</h4>
+                            <canvas id="supplierPerformanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analyticsTab" class="tab-content">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Key Performance Indicators</h3>
+                        <div class="kpi-grid">
+                            <div class="kpi-item">
+                                <span class="kpi-label">Fee Collection Rate</span>
+                                <span class="kpi-value" id="feeCollectionRate">85%</span>
+                            </div>
+                            <div class="kpi-item">
+                                <span class="kpi-label">Budget Utilization</span>
+                                <span class="kpi-value" id="budgetUtilization">72%</span>
+                            </div>
+                            <div class="kpi-item">
+                                <span class="kpi-label">Staff Cost Ratio</span>
+                                <span class="kpi-value" id="staffCostRatio">65%</span>
+                            </div>
+                            <div class="kpi-item">
+                                <span class="kpi-label">Outstanding Fees</span>
+                                <span class="kpi-value" id="outstandingFeesKpi">15%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analytics-card">
+                        <h3>Trend Analysis</h3>
+                        <canvas id="trendAnalysisChart"></canvas>
+                    </div>
+                    
+                    <div class="analytics-card">
+                        <h3>Comparative Analysis</h3>
+                        <canvas id="comparativeChart"></canvas>
+                    </div>
+                    
+                    <div class="analytics-card">
+                        <h3>Forecasting</h3>
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Export Report</h3>
+                <span class="close" onclick="closeModal('exportModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="exportFormat">Export Format:</label>
+                    <select id="exportFormat">
+                        <option value="csv">CSV</option>
+                        <option value="excel">Excel</option>
+                        <option value="pdf">PDF</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="exportReportType">Report Type:</label>
+                    <select id="exportReportType">
+                        <option value="payment">Payment Reports</option>
+                        <option value="payroll">Payroll Reports</option>
+                        <option value="procurement">Procurement Reports</option>
+                        <option value="summary">Summary Report</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="includeCharts"> Include Charts
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('exportModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="performExport()">Export</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Profile</h3>
+                <span class="close" onclick="closeModal('userProfileModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="profile-info">
+                    <div class="profile-avatar">A</div>
+                    <h4>Admin User</h4>
+                    <p>System Administrator</p>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn btn-secondary">Edit Profile</button>
+                    <button class="btn btn-danger" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="../js/modules/reports-core.js"></script>
+    <script src="../js/modules/reports-functions-optimized.js"></script>
+    
+    <script>
+        // Initialize the module when page loads with performance optimization
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM loaded, initializing optimized reports...');
+            updateCurrentTime();
+            
+            // Add fade-in animation to main container
+            const container = document.querySelector('.container');
+            if (container) {
+                container.classList.add('fade-in');
+            }
+            
+            // Wait for critical scripts to load
+            const waitForScripts = () => {
+                return new Promise((resolve) => {
+                    const checkScripts = () => {
+                        if (typeof window.performanceOptimizer !== 'undefined' && 
+                            typeof window.optimizedReportsModule !== 'undefined') {
+                            resolve();
+                        } else {
+                            setTimeout(checkScripts, 100);
+                        }
+                    };
+                    checkScripts();
+                });
+            };
+            
+            try {
+                await waitForScripts();
+                
+                // Initialize optimized reports module
+                if (window.optimizedReportsModule) {
+                    await window.optimizedReportsModule.initializeReports();
+                }
+                
+                // Apply translations
+                if (typeof applyTranslations === 'function') {
+                    applyTranslations();
+                }
+                
+                // Add performance indicator
+                addPerformanceIndicator();
+                
+            } catch (error) {
+                console.error('Error initializing optimized reports:', error);
+                // Fallback to original initialization
+                if (typeof initializeReports === 'function') {
+                    initializeReports();
+                }
+            }
+        });    
+        
+        // Update time every second
+        setInterval(function() {
+            if (typeof updateCurrentTime === 'function') {
+                updateCurrentTime();
+            }
+        }, 1000);
+
+        // Navigation function
+        function navigateToPage(page) {
+            window.location.href = page;
+        }
+
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = now.toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = `${dateString} ${timeString}`;
+            }
+        }
+
+        // Toggle sidebar with smooth animation
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.performanceOptimizer) {
+                // Use smooth transitions
+                window.performanceOptimizer.smoothTransition(sidebar, {
+                    transform: sidebar.classList.contains('collapsed') ? 'translateX(0)' : 'translateX(-250px)'
+                }, 300);
+            }
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        }
+
+        // Add performance indicator
+        function addPerformanceIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'performance-indicator';
+            indicator.title = 'System Performance';
+            document.body.appendChild(indicator);
+            
+            // Update indicator based on performance
+            setInterval(() => {
+                if (window.performanceOptimizer) {
+                    const metrics = window.performanceOptimizer.getPerformanceMetrics();
+                    const memoryUsage = metrics.memory ? metrics.memory.used / metrics.memory.limit : 0;
+                    
+                    if (memoryUsage > 0.8) {
+                        indicator.className = 'performance-indicator error';
+                    } else if (memoryUsage > 0.6) {
+                        indicator.className = 'performance-indicator warning';
+                    } else {
+                        indicator.className = 'performance-indicator';
+                    }
+                }
+            }, 5000);
+        }
+
+        // Language toggle
+        function toggleLanguage() {
+            const langText = document.getElementById('langText');
+            if (!langText) return;
+            
+            currentLanguage = currentLanguage === 'en' ? 'sw' : 'en';
+            langText.textContent = currentLanguage.toUpperCase();
+            
+            // Apply translations
+            if (typeof applyTranslations === 'function') {
+                applyTranslations();
+            }
+        }
+
+        // Translation object
+        const translations = {
+            en: {
+                // Header
+                'dashboard': 'Dashboard',
+                'students': 'Students',
+                'fees_payments': 'Fees & Payments',
+                'staff_payroll': 'Staff & Payroll',
+                'procurement': 'Procurement',
+                'reports': 'Reports & Analytics',
+                'settings': 'Settings',
+                'logout': 'Logout',
+                
+                // Main content
+                'reports_analytics': 'Reports & Analytics',
+                'total_revenue': 'Total Revenue',
+                'total_expenses': 'Total Expenses', 
+                'total_payroll': 'Total Payroll',
+                'outstanding_fees': 'Outstanding Fees',
+                'overview': 'Overview',
+                'financial': 'Financial',
+                'payroll': 'Payroll',
+                'analytics': 'Analytics',
+                'monthly_revenue': 'Monthly Revenue Trend',
+                'outstanding_over_time': 'Outstanding Fees Over Time',
+                'expense_breakdown': 'Expense Breakdown by Department',
+                'top_unpaid_classes': 'Top Classes with Unpaid Fees',
+                'export': 'Export',
+                'filter': 'Filter',
+                'date_range': 'Date Range',
+                'from': 'From',
+                'to': 'To',
+                'apply_filters': 'Apply Filters'
+            },
+            sw: {
+                // Header
+                'dashboard': 'Dashibodi',
+                'students': 'Wanafunzi',
+                'fees_payments': 'Ada na Malipo',
+                'staff_payroll': 'Wafanyakazi na Mishahara',
+                'procurement': 'Ununuzi',
+                'reports': 'Ripoti na Takwimu',
+                'settings': 'Mipangilio',
+                'logout': 'Ondoka',
+                
+                // Main content
+                'reports_analytics': 'Ripoti na Takwimu',
+                'total_revenue': 'Mapato Yote',
+                'total_expenses': 'Matumizi Yote',
+                'total_payroll': 'Mishahara Yote',
+                'outstanding_fees': 'Ada Zilizobaki',
+                'overview': 'Muhtasari',
+                'financial': 'Kifedha',
+                'payroll': 'Mishahara',
+                'analytics': 'Takwimu',
+                'monthly_revenue': 'Mwelekeo wa Mapato ya Kila Mwezi',
+                'outstanding_over_time': 'Ada Zilizobaki Kwa Muda',
+                'expense_breakdown': 'Mgawanyo wa Matumizi kwa Idara',
+                'top_unpaid_classes': 'Madarasa Yenye Ada Nyingi Zilizobaki',
+                'export': 'Hamisha',
+                'filter': 'Chuja',
+                'date_range': 'Kipindi cha Tarehe',
+                'from': 'Kutoka',
+                'to': 'Hadi',
+                'apply_filters': 'Tumia Vichujio'
+            }
+        };
+
+        let currentLanguage = 'en';
+
+        // Apply translations
+        function applyTranslations() {
+            const elements = document.querySelectorAll('[data-translate]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[currentLanguage][key]) {
+                    element.textContent = translations[currentLanguage][key];
+                }
+            });
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Logout function
+        function logout() {
+            if (window.authManager) {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.authManager.logout();
+                }
+            } else {
+                // Fallback if authManager not available
+                if (confirm('Are you sure you want to logout?')) {
+                    localStorage.removeItem('sms_session');
+                    localStorage.removeItem('sms_user');
+                    window.location.href = '../login.html';
+                }
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

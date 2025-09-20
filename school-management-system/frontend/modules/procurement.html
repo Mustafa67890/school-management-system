@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procurement Module - School Manager System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/modules/procurement.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="../js/auth-manager.js"></script>
+    <script src="../js/global-navigation.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="sidebar-header">
+                <h2>
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>School Manager</span>
+                </h2>
+            </div>
+            <div class="admin-profile">
+                <div class="admin-avatar">A</div>
+                <div class="admin-info">
+                    <h4>Admin User</h4>
+                    <p>Administrator</p>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-section">
+                    <div class="menu-section-title">Main Navigation</div>
+                    <a href="../index.html" class="menu-item" onclick="navigateToPage('../index.html')">
+                        <i class="fas fa-home"></i>
+                        <span data-translate="dashboard">Dashboard</span>
+                    </a>
+                    <a href="./student-module.html" class="menu-item" onclick="navigateToPage('./student-module.html')">
+                        <i class="fas fa-users"></i>
+                        <span data-translate="students">Students</span>
+                    </a>
+                    <a href="./fees-payment.html" class="menu-item" onclick="navigateToPage('./fees-payment.html')">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span data-translate="fees_payments">Fees & Payments</span>
+                    </a>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">Management</div>
+                    <a href="./staff-payroll.html" class="menu-item" onclick="navigateToPage('./staff-payroll.html')">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span data-translate="staff_payroll">Staff & Payroll</span>
+                    </a>
+                    <a href="./procurement.html" class="menu-item active">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span data-translate="procurement">Procurement</span>
+                    </a>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">System</div>
+                    <a href="reports.html" class="menu-item" onclick="navigateToModule('reports.html')">
+                        <i class="fas fa-chart-bar"></i>
+                        <span data-translate="reports">Reports</span>
+                    </a>
+                    <a href="settings.html" class="menu-item" onclick="navigateToModule('settings.html')">
+                        <i class="fas fa-cog"></i>
+                        <span data-translate="settings">Settings</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <h1><i class="fas fa-shopping-cart"></i><span data-translate="procurement_module"> Procurement Module</span></h1>
+                </div>
+                <div class="header-right">
+                    <button class="language-toggle" onclick="toggleLanguage()">
+                        <i class="fas fa-language"></i>
+                        <span id="langToggle">EN</span>
+                    </button>
+                    <div class="current-time">
+                        <i class="fas fa-clock"></i>
+                        <span id="current-time">Loading...</span>
+                    </div>
+                    <div class="user-profile" onclick="openModal('userProfileModal')">
+                        <img id="userProfileImage" class="user-avatar" src="" alt="Profile" style="display: none; width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <span id="userName">Admin</span>
+                    </div>
+                    <button class="btn btn-danger" onclick="openModal('logoutModal')">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span data-translate="logout">Logout</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="content">
+                <div class="tab-navigation">
+                    <button class="tab-btn active" onclick="switchTab('receiving')" data-tab="receiving">
+                        <i class="fas fa-truck-loading"></i>
+                        <span>Goods Receiving</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('invoices')" data-tab="invoices">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Invoice Processing</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('budget')" data-tab="budget">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Budget Control</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('reports')" data-tab="reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports & Analytics</span>
+                    </button>
+                </div>
+
+                <!-- Goods Receiving Tab -->
+                <div id="receiving-tab" class="tab-content active">
+                    <div class="dashboard-cards">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Pending Deliveries</div>
+                                <div class="card-icon pending"><i class="fas fa-clock"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardPendingDeliveries">12</div>
+                                <div class="card-description">Orders awaiting delivery</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Received Today</div>
+                                <div class="card-icon received"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardReceivedToday">5</div>
+                                <div class="card-description">Items received today</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Partial Deliveries</div>
+                                <div class="card-icon partial"><i class="fas fa-exclamation-triangle"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardPartialDeliveries">3</div>
+                                <div class="card-description">Incomplete deliveries</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Total Value</div>
+                                <div class="card-icon total"><i class="fas fa-money-bill"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardTotalValue">TZS 2,450,000</div>
+                                <div class="card-description">This month's receipts</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="openModal('receiveGoodsModal')">
+                            <i class="fas fa-plus"></i>Record Receipt
+                        </button>
+                        <button class="btn btn-success" onclick="openModal('newOrderModal')">
+                            <i class="fas fa-shopping-cart"></i>New Purchase Order
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteSelectedReceiving()" id="deleteSelectedReceivingBtn" style="display: none;">
+                            <i class="fas fa-trash"></i>Delete Selected
+                        </button>
+                        <input id="fileImportReceiving" class="hidden" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" onchange="handleImportReceiving(event)" style="display: none;">
+                        <button class="btn btn-outline" onclick="document.getElementById('fileImportReceiving').click()">
+                            <i class="fas fa-file-import"></i>Import
+                        </button>
+                        <button class="btn btn-outline" onclick="exportReceivingData()">
+                            <i class="fas fa-file-export"></i>Export Data
+                        </button>
+                    </div>
+
+                    <div class="filters">
+                        <select id="filterStatus" class="form-control w-160" onchange="filterReceiving()">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="partial">Partial</option>
+                            <option value="complete">Complete</option>
+                        </select>
+                        <select id="filterDepartment" class="form-control w-160" onchange="filterReceiving()">
+                            <option value="">All Departments</option>
+                            <option value="science">Science Department</option>
+                            <option value="library">Library</option>
+                            <option value="administration">Administration</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                        <input id="searchReceiving" class="form-control" style="flex:1;" placeholder="Search by PO number or supplier" oninput="filterReceiving()">
+                    </div>
+
+                    <div class="table-wrap">
+                        <table id="receivingTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" onclick="toggleSelectAllReceiving(this)" id="selectAllReceivingCheckbox"></th>
+                                    <th>PO Number</th>
+                                    <th>Supplier</th>
+                                    <th>Department</th>
+                                    <th>Items</th>
+                                    <th>Expected</th>
+                                    <th>Received</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="receivingTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Invoice Processing Tab -->
+                <div id="invoices-tab" class="tab-content">
+                    <div class="dashboard-cards">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Pending Invoices</div>
+                                <div class="card-icon pending"><i class="fas fa-file-invoice"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardPendingInvoices">8</div>
+                                <div class="card-description">Awaiting processing</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Approved Payments</div>
+                                <div class="card-icon approved"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardApprovedPayments">15</div>
+                                <div class="card-description">Ready for payment</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Paid This Month</div>
+                                <div class="card-icon paid"><i class="fas fa-money-check"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardPaidMonth">TZS 1,850,000</div>
+                                <div class="card-description">Total payments made</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Outstanding</div>
+                                <div class="card-icon outstanding"><i class="fas fa-exclamation-circle"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardOutstanding">TZS 600,000</div>
+                                <div class="card-description">Pending payments</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="openModal('processInvoiceModal')">
+                            <i class="fas fa-plus"></i>Process Invoice
+                        </button>
+                        <button class="btn btn-success" onclick="processPayments()">
+                            <i class="fas fa-credit-card"></i>Process Payments
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteSelectedInvoices()" id="deleteSelectedInvoicesBtn" style="display: none;">
+                            <i class="fas fa-trash"></i>Delete Selected
+                        </button>
+                        <input id="fileImportInvoices" class="hidden" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" onchange="handleImportInvoices(event)" style="display: none;">
+                        <button class="btn btn-outline" onclick="document.getElementById('fileImportInvoices').click()">
+                            <i class="fas fa-file-import"></i>Import
+                        </button>
+                        <button class="btn btn-outline" onclick="exportInvoiceData()">
+                            <i class="fas fa-file-export"></i>Export Data
+                        </button>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table id="invoicesTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" onclick="toggleSelectAllInvoices(this)" id="selectAllInvoicesCheckbox"></th>
+                                    <th>Invoice No</th>
+                                    <th>Supplier</th>
+                                    <th>PO Reference</th>
+                                    <th>Amount (TZS)</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Payment Method</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Budget Control Tab -->
+                <div id="budget-tab" class="tab-content">
+                    <div class="dashboard-cards">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Total Budget</div>
+                                <div class="card-icon total"><i class="fas fa-wallet"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardTotalBudget">TZS 5,000,000</div>
+                                <div class="card-description">Annual procurement budget</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Utilized</div>
+                                <div class="card-icon utilized"><i class="fas fa-chart-line"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardUtilized">TZS 2,450,000</div>
+                                <div class="card-description">49% of total budget</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Remaining</div>
+                                <div class="card-icon remaining"><i class="fas fa-piggy-bank"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardRemaining">TZS 2,550,000</div>
+                                <div class="card-description">Available for spending</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Departments Over Budget</div>
+                                <div class="card-icon over"><i class="fas fa-exclamation-triangle"></i></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-value" id="cardOverBudget">1</div>
+                                <div class="card-description">Science Dept exceeded</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="openModal('budgetPlanningModal')">
+                            <i class="fas fa-plus"></i>Setup Budget
+                        </button>
+                        <button class="btn btn-success" onclick="openModal('budgetModal')">
+                            <i class="fas fa-edit"></i>Manage Budget
+                        </button>
+                        <button class="btn btn-outline" onclick="exportBudgetData()">
+                            <i class="fas fa-file-export"></i>Export Budget
+                        </button>
+                    </div>
+
+                    <div class="budget-overview">
+                        <div class="budget-chart-container">
+                            <h3>Budget Utilization by Department</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="budgetChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="department-budgets">
+                            <h3>Department Budget Status</h3>
+                            <div class="budget-items" id="budgetItems"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table id="budgetTable">
+                            <thead>
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Allocated</th>
+                                    <th>Utilized</th>
+                                    <th>Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody id="budgetTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="reports-tab" class="tab-content">
+                    <div class="reports-grid">
+                        <div class="report-card" onclick="generateReport('monthly')">
+                            <div class="report-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="report-content">
+                                <h3>Monthly Procurement Report</h3>
+                                <p>Detailed breakdown of all purchases made this month</p>
+                            </div>
+                        </div>
+                        <div class="report-card" onclick="generateReport('department')">
+                            <div class="report-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="report-content">
+                                <h3>Department Spending Report</h3>
+                                <p>Expenditure analysis by department</p>
+                            </div>
+                        </div>
+                        <div class="report-card" onclick="generateReport('supplier')">
+                            <div class="report-icon">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div class="report-content">
+                                <h3>Supplier Performance Report</h3>
+                                <p>Delivery times and supplier ratings</p>
+                            </div>
+                        </div>
+                        <div class="report-card" onclick="generateReport('budget')">
+                            <div class="report-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="report-content">
+                                <h3>Budget vs Actual Report</h3>
+                                <p>Compare planned vs actual spending</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-section">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Monthly Procurement Trend</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="procurementTrendChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Top Suppliers by Value</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="suppliersChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Goods Receiving Modal -->
+    <div id="receiveGoodsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Record Goods Receipt</div>
+                <button class="modal-close" onclick="closeModal('receiveGoodsModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">PO Number</label>
+                        <input id="receiptPONumber" class="form-control" placeholder="e.g. PO-2024-001">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Supplier</label>
+                        <select id="receiptSupplier" class="form-control">
+                            <option value="">Select Supplier</option>
+                            <option value="Stationery Plus Ltd">Stationery Plus Ltd</option>
+                            <option value="Science Equipment Co">Science Equipment Co</option>
+                            <option value="Library Books Suppliers">Library Books Suppliers</option>
+                            <option value="Maintenance Supplies">Maintenance Supplies</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select id="receiptDepartment" class="form-control">
+                            <option value="">Select Department</option>
+                            <option value="science">Science Department</option>
+                            <option value="library">Library</option>
+                            <option value="administration">Administration</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Receipt Date</label>
+                        <input id="receiptDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Items Received</label>
+                    <textarea id="receiptItems" class="form-control" rows="3" placeholder="List items received with quantities"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Expected Quantity</label>
+                        <input id="receiptExpected" type="number" class="form-control" placeholder="Total expected items">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Received Quantity</label>
+                        <input id="receiptReceived" type="number" class="form-control" placeholder="Total received items">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="receiptNotes" class="form-control" rows="2" placeholder="Any additional notes or discrepancies"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('receiveGoodsModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveGoodsReceipt()"><i class="fas fa-save"></i>Save Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Purchase Order Modal -->
+    <div id="newOrderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Create Purchase Order</div>
+                <button class="modal-close" onclick="closeModal('newOrderModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">PO Number</label>
+                        <input id="newPONumber" class="form-control" placeholder="Auto-generated" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select id="newPODepartment" class="form-control">
+                            <option value="">Select Department</option>
+                            <option value="science">Science Department</option>
+                            <option value="library">Library</option>
+                            <option value="administration">Administration</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Supplier</label>
+                        <select id="newPOSupplier" class="form-control">
+                            <option value="">Select Supplier</option>
+                            <option value="Stationery Plus Ltd">Stationery Plus Ltd</option>
+                            <option value="Science Equipment Co">Science Equipment Co</option>
+                            <option value="Library Books Suppliers">Library Books Suppliers</option>
+                            <option value="Maintenance Supplies">Maintenance Supplies</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expected Delivery</label>
+                        <input id="newPODelivery" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Items Description</label>
+                    <textarea id="newPOItems" class="form-control" rows="4" placeholder="Detailed description of items to be purchased"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Estimated Value (TZS)</label>
+                        <input id="newPOValue" type="number" class="form-control" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select id="newPOPriority" class="form-control">
+                            <option value="normal">Normal</option>
+                            <option value="urgent">Urgent</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('newOrderModal')">Cancel</button>
+                <button class="btn btn-success" onclick="createPurchaseOrder()"><i class="fas fa-plus"></i>Create Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Process Invoice Modal -->
+    <div id="processInvoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Process Invoice</div>
+                <button class="modal-close" onclick="closeModal('processInvoiceModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Invoice Number</label>
+                        <input id="invoiceNumber" class="form-control" placeholder="e.g. INV-2024-001">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">PO Reference</label>
+                        <select id="invoicePORef" class="form-control">
+                            <option value="">Select PO</option>
+                            <option value="PO-2024-001">PO-2024-001 - Stationery</option>
+                            <option value="PO-2024-002">PO-2024-002 - Science Equipment</option>
+                            <option value="PO-2024-003">PO-2024-003 - Library Books</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Supplier</label>
+                        <input id="invoiceSupplier" class="form-control" placeholder="Supplier name" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Invoice Date</label>
+                        <input id="invoiceDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Invoice Amount (TZS)</label>
+                        <input id="invoiceAmount" type="number" class="form-control" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Due Date</label>
+                        <input id="invoiceDueDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <select id="invoicePaymentMethod" class="form-control">
+                            <option value="bank">Bank Transfer</option>
+                            <option value="cash">Cash</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="mpesa">M-Pesa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="invoiceStatus" class="form-control">
+                            <option value="pending">Pending Approval</option>
+                            <option value="approved">Approved</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="invoiceNotes" class="form-control" rows="2" placeholder="Additional notes"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('processInvoiceModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveInvoice()"><i class="fas fa-save"></i>Process Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Management Modal -->
+    <div id="budgetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Budget Management</div>
+                <button class="modal-close" onclick="closeModal('budgetModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select id="budgetDepartment" class="form-control">
+                        <option value="">Select Department</option>
+                        <option value="science">Science Department</option>
+                        <option value="library">Library</option>
+                        <option value="administration">Administration</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Annual Budget (TZS)</label>
+                        <input id="budgetAnnual" type="number" class="form-control" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Utilized Amount (TZS)</label>
+                        <input id="budgetUtilized" type="number" class="form-control" placeholder="0" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Budget Period</label>
+                    <select id="budgetPeriod" class="form-control">
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="budgetNotes" class="form-control" rows="2" placeholder="Budget allocation notes"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('budgetModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveBudget()"><i class="fas fa-save"></i>Save Budget</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Planning Modal -->
+    <div id="budgetPlanningModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">Budget Planning & Setup</div>
+                <button class="modal-close" onclick="closeModal('budgetPlanningModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Budget Year</label>
+                        <select id="planningYear" class="form-control">
+                            <option value="2020">2020</option>
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
+                            <option value="2023">2023</option>
+                            <option value="2024" selected>2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Total School Budget (TZS)</label>
+                        <input id="totalSchoolBudget" type="number" class="form-control" placeholder="10000000">
+                    </div>
+                </div>
+                <h4 style="margin: 20px 0 10px 0;">Department Budget Allocation</h4>
+                <div class="budget-allocation-grid">
+                    <div class="allocation-item">
+                        <label>Science Department (%)</label>
+                        <input type="number" id="sciencePercentage" class="form-control" placeholder="30" max="100">
+                        <span class="allocation-amount" id="scienceAmount">TZS 0</span>
+                    </div>
+                    <div class="allocation-item">
+                        <label>Library (%)</label>
+                        <input type="number" id="libraryPercentage" class="form-control" placeholder="20" max="100">
+                        <span class="allocation-amount" id="libraryAmount">TZS 0</span>
+                    </div>
+                    <div class="allocation-item">
+                        <label>Administration (%)</label>
+                        <input type="number" id="administrationPercentage" class="form-control" placeholder="25" max="100">
+                        <span class="allocation-amount" id="administrationAmount">TZS 0</span>
+                    </div>
+                    <div class="allocation-item">
+                        <label>Maintenance (%)</label>
+                        <input type="number" id="maintenancePercentage" class="form-control" placeholder="25" max="100">
+                        <span class="allocation-amount" id="maintenanceAmount">TZS 0</span>
+                    </div>
+                </div>
+                <div class="allocation-summary">
+                    <strong>Total Allocation: <span id="totalAllocation">0%</span></strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('budgetPlanningModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveBudgetPlan()"><i class="fas fa-save"></i>Save Budget Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goods Details Modal -->
+    <div id="goodsDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">Goods Purchase Details</div>
+                <button class="modal-close" onclick="closeModal('goodsDetailsModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Item Category</label>
+                        <select id="itemCategory" class="form-control" onchange="updateItemOptions()">
+                            <option value="">Select Category</option>
+                            <option value="food">Food Items / Vyakula</option>
+                            <option value="stationery">Stationery / Vifaa vya Ofisi</option>
+                            <option value="utilities">Utilities / Huduma</option>
+                            <option value="maintenance">Maintenance / Matengenezo</option>
+                            <option value="equipment">Equipment / Vifaa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specific Item</label>
+                        <input list="itemOptions" id="specificItem" class="form-control" placeholder="Enter or select item">
+                        <datalist id="itemOptions">
+                            <option value="">Select Item</option>
+                        </datalist>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input id="itemQuantity" type="number" class="form-control" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit</label>
+                        <input list="unitOptions" id="itemUnit" class="form-control" placeholder="Enter or select unit">
+                        <datalist id="unitOptions">
+                            <option value="kg">Kilograms (kg)</option>
+                            <option value="pieces">Pieces / Vipande</option>
+                            <option value="boxes">Boxes / Masanduku</option>
+                            <option value="liters">Liters</option>
+                            <option value="bags">Bags / Mifuko</option>
+                            <option value="tons">Tons</option>
+                            <option value="meters">Meters</option>
+                            <option value="rolls">Rolls</option>
+                            <option value="bottles">Bottles</option>
+                            <option value="packets">Packets</option>
+                        </datalist>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Unit Price (TZS)</label>
+                        <input id="itemUnitPrice" type="number" class="form-control" placeholder="0" oninput="calculateTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Total Amount (TZS)</label>
+                        <input id="itemTotalAmount" type="number" class="form-control" placeholder="0" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Purchase Date</label>
+                    <input id="itemPurchaseDate" type="date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="itemNotes" class="form-control" rows="2" placeholder="Additional notes about the purchase"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('goodsDetailsModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveGoodsDetails()"><i class="fas fa-save"></i>Save Item</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Print Modal -->
+    <div id="receiptPrintModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">Print Receipt</div>
+                <button class="modal-close" onclick="closeModal('receiptPrintModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">School Name</label>
+                    <input id="schoolName" class="form-control" value="Mwalimu Nyerere Secondary School" placeholder="Enter school name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Manager Name</label>
+                    <input id="managerName" class="form-control" placeholder="Enter manager name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Receiver Name</label>
+                    <input id="receiverName" class="form-control" placeholder="Enter receiver name">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Transaction Date</label>
+                        <input id="transactionDate" type="date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Receipt Number</label>
+                        <input id="receiptNumber" class="form-control" placeholder="Auto-generated" readonly>
+                    </div>
+                </div>
+                <div class="receipt-preview" id="receiptPreview">
+                    <!-- Receipt preview will be generated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('receiptPrintModal')">Cancel</button>
+                <button class="btn btn-success" onclick="printReceipt()"><i class="fas fa-print"></i>Print Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">User Profile</div>
+                <button class="modal-close" onclick="closeModal('userProfileModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input id="userFullName" class="form-control" value="Admin User">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input id="userEmail" type="email" class="form-control" value="admin@school.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Role</label>
+                    <input id="userRole" class="form-control" value="Administrator">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="showNotification('Profile deleted (demo)', 'success'); closeModal('userProfileModal');"><i class="fas fa-trash"></i>Delete</button>
+                <button class="btn btn-primary" onclick="updateUserProfile()"><i class="fas fa-save"></i>Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Confirm Logout</div>
+                <button class="modal-close" onclick="closeModal('logoutModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to logout?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('logoutModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmLogout()"><i class="fas fa-sign-out-alt"></i>Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Preview Modal -->
+    <div id="reportPreviewModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title" id="reportPreviewTitle">Report Preview</div>
+                <button class="modal-close" onclick="closeModal('reportPreviewModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="reportPreviewBody">
+                {{ ... }}
+                <!-- Report content will be generated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('reportPreviewModal')">Close</button>
+                <button class="btn btn-success" onclick="exportReport()"><i class="fas fa-download"></i>Export PDF</button>
+                <button class="btn btn-primary" onclick="printReport()"><i class="fas fa-print"></i>Print</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth-manager.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/global-navigation.js"></script>
+    <script src="../js/modules/procurement-core.js"></script>
+    <script src="../js/modules/procurement-functions.js"></script>
+</body>
+</html>

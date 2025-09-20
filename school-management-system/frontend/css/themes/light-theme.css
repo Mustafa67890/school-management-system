@@ -1,0 +1,98 @@
+/* Light Theme - Default Theme */
+:root {
+    --primary-color: #667eea;
+    --primary-hover: #5a6fd8;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #e9ecef;
+    
+    --text-primary: #333333;
+    --text-secondary: #6c757d;
+    --text-muted: #adb5bd;
+    
+    --border-color: #e9ecef;
+    --border-hover: #dee2e6;
+    
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
+    
+    --sidebar-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --sidebar-text: #ffffff;
+    --sidebar-hover: rgba(255,255,255,0.1);
+    --sidebar-active: rgba(255,255,255,0.2);
+}
+
+/* Apply light theme styles */
+body.light-theme {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.light-theme .sidebar {
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+.light-theme .sidebar .menu-item:hover {
+    background: var(--sidebar-hover);
+}
+
+.light-theme .sidebar .menu-item.active {
+    background: var(--sidebar-active);
+}
+
+.light-theme .header {
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.light-theme .settings-card,
+.light-theme .modal-content {
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+.light-theme .form-control {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.light-theme .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.light-theme .btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.light-theme .btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.light-theme .notification.success {
+    background: var(--bg-primary);
+    border-left-color: var(--success-color);
+}
+
+.light-theme .notification.error {
+    background: var(--bg-primary);
+    border-left-color: var(--danger-color);
+}
+
+.light-theme .notification.warning {
+    background: var(--bg-primary);
+    border-left-color: var(--warning-color);
+}

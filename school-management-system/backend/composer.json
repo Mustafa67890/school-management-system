@@ -1,0 +1,36 @@
+{
+    "name": "school-management/api",
+    "description": "School Management System API",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.0",
+        "ext-pdo": "*",
+        "ext-pdo_pgsql": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "firebase/php-jwt": "^6.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SchoolManagement\\": "src/"
+        },
+        "files": [
+            "config/config.php",
+            "config/database.php",
+            "includes/functions.php"
+        ]
+    },
+    "scripts": {
+        "start": "php -S 0.0.0.0:8000",
+        "test": "phpunit",
+        "init-db": "php init_database.php"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - School Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/modules/dashboard.css">
+    <link rel="stylesheet" href="../css/performance-styles.css">
+    <link id="theme-css" rel="stylesheet" href="../css/themes/light-theme.css">
+    <script src="../js/auth-manager.js"></script>
+    <script src="../js/global-theme-manager.js"></script>
+    <script src="../js/global-navigation.js"></script>
+    
+    <style>
+        .settings-container {
+            padding: 20px;
+        }
+        
+        .settings-tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .settings-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: var(--dark);
+        }
+        
+        .setting-info p {
+            margin: 0;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+        
+        .form-select, .form-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        
+        .theme-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .theme-card {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .theme-card.active {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        
+        .theme-card:hover {
+            border-color: var(--primary);
+        }
+        
+        .theme-colors {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .save-settings {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .save-settings:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="sidebar-header">
+                <h2>SMS</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="../index.html" class="menu-item" onclick="navigateToPage('../index.html')">
+                    <i class="fas fa-home"></i>
+                    <span data-translate="dashboard">Dashboard</span>
+                </a>
+                <a href="student-module.html" class="menu-item" onclick="navigateToModule('student-module.html')">
+                    <i class="fas fa-user-graduate"></i>
+                    <span data-translate="students">Students</span>
+                </a>
+                <a href="fees-payment.html" class="menu-item" onclick="navigateToModule('fees-payment.html')">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span data-translate="fees">Fees & Payment</span>
+                </a>
+                <a href="staff-payroll.html" class="menu-item" onclick="navigateToModule('staff-payroll.html')">
+                    <i class="fas fa-users"></i>
+                    <span data-translate="staff">Staff & Payroll</span>
+                </a>
+                <a href="procurement.html" class="menu-item" onclick="navigateToModule('procurement.html')">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span data-translate="procurement">Procurement</span>
+                </a>
+                <a href="reports.html" class="menu-item" onclick="navigateToModule('reports.html')">
+                    <i class="fas fa-chart-bar"></i>
+                    <span data-translate="reports">Reports</span>
+                </a>
+                <a href="settings.html" class="menu-item active" onclick="navigateToModule('settings.html')">
+                    <i class="fas fa-cog"></i>
+                    <span data-translate="settings">Settings</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <h1 data-translate="settings">Settings</h1>
+                    <p data-translate="manage_system_settings">Manage system settings and preferences</p>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-icon" onclick="toggleLanguage()" title="Toggle Language">
+                            <i class="fas fa-language"></i>
+                        </button>
+                        <button class="btn-icon" onclick="openModal('userProfileModal')" title="User Profile">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <button class="btn-icon" onclick="openModal('logoutModal')" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                    <div class="current-time" id="currentTime"></div>
+                </div>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="settings-container">
+                <!-- Settings Tabs -->
+                <div class="settings-tabs">
+                    <button class="tab-btn active" onclick="switchTab('appearance')">
+                        <i class="fas fa-palette"></i> Appearance
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('system')">
+                        <i class="fas fa-cogs"></i> System
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('notifications')">
+                        <i class="fas fa-bell"></i> Notifications
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('security')">
+                        <i class="fas fa-shield-alt"></i> Security
+                    </button>
+                </div>
+
+                <!-- Appearance Tab -->
+                <div id="appearance" class="tab-content active">
+                    <div class="settings-section">
+                        <div class="section-title">
+                            <i class="fas fa-palette"></i>
+                            Theme & Appearance
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Theme</h4>
+                                <p>Choose your preferred theme</p>
+                            </div>
+                        </div>
+                        
+                        <div class="theme-preview">
+                            <div class="theme-card active" onclick="selectTheme('light')">
+                                <div class="theme-colors">
+                                    <div class="color-dot" style="background: #4361ee;"></div>
+                                    <div class="color-dot" style="background: #ffffff;"></div>
+                                    <div class="color-dot" style="background: #f8f9fa;"></div>
+                                </div>
+                                <h4>Light Theme</h4>
+                                <p>Clean and bright interface</p>
+                            </div>
+                            
+                            <div class="theme-card" onclick="selectTheme('dark')">
+                                <div class="theme-colors">
+                                    <div class="color-dot" style="background: #4361ee;"></div>
+                                    <div class="color-dot" style="background: #1a1a1a;"></div>
+                                    <div class="color-dot" style="background: #2d2d2d;"></div>
+                                </div>
+                                <h4>Dark Theme</h4>
+                                <p>Easy on the eyes</p>
+                            </div>
+                            
+                            <div class="theme-card" onclick="selectTheme('blue')">
+                                <div class="theme-colors">
+                                    <div class="color-dot" style="background: #0066cc;"></div>
+                                    <div class="color-dot" style="background: #ffffff;"></div>
+                                    <div class="color-dot" style="background: #e6f3ff;"></div>
+                                </div>
+                                <h4>Blue Theme</h4>
+                                <p>Professional blue interface</p>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Font Size</h4>
+                                <p>Adjust text size for better readability</p>
+                            </div>
+                            <select class="form-select" id="fontSize">
+                                <option value="small">Small</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Sidebar Position</h4>
+                                <p>Choose sidebar position</p>
+                            </div>
+                            <select class="form-select" id="sidebarPosition">
+                                <option value="left" selected>Left</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Tab -->
+                <div id="system" class="tab-content">
+                    <div class="settings-section">
+                        <div class="section-title">
+                            <i class="fas fa-cogs"></i>
+                            System Settings
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Default Language</h4>
+                                <p>Set the default system language</p>
+                            </div>
+                            <select class="form-select" id="defaultLanguage">
+                                <option value="en" selected>English</option>
+                                <option value="sw">Kiswahili</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Currency</h4>
+                                <p>Default currency for financial operations</p>
+                            </div>
+                            <select class="form-select" id="currency">
+                                <option value="TZS" selected>TZS (Tanzanian Shilling)</option>
+                                <option value="USD">USD (US Dollar)</option>
+                                <option value="EUR">EUR (Euro)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Date Format</h4>
+                                <p>Choose date display format</p>
+                            </div>
+                            <select class="form-select" id="dateFormat">
+                                <option value="dd/mm/yyyy" selected>DD/MM/YYYY</option>
+                                <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                                <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Auto Save</h4>
+                                <p>Automatically save changes</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSetting(this, 'autoSave')"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Tab -->
+                <div id="notifications" class="tab-content">
+                    <div class="settings-section">
+                        <div class="section-title">
+                            <i class="fas fa-bell"></i>
+                            Notification Settings
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Email Notifications</h4>
+                                <p>Receive notifications via email</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSetting(this, 'emailNotifications')"></div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Push Notifications</h4>
+                                <p>Browser push notifications</p>
+                            </div>
+                            <div class="toggle-switch" onclick="toggleSetting(this, 'pushNotifications')"></div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Sound Notifications</h4>
+                                <p>Play sound for notifications</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSetting(this, 'soundNotifications')"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Tab -->
+                <div id="security" class="tab-content">
+                    <div class="settings-section">
+                        <div class="section-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Security Settings
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Session Timeout</h4>
+                                <p>Auto logout after inactivity</p>
+                            </div>
+                            <select class="form-select" id="sessionTimeout">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Two-Factor Authentication</h4>
+                                <p>Add extra security to your account</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="setup2FA()">Setup 2FA</button>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Change Password</h4>
+                                <p>Update your account password</p>
+                            </div>
+                            <button class="btn btn-secondary" onclick="changePassword()">Change Password</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <button class="save-settings" onclick="saveAllSettings()">
+                <i class="fas fa-save"></i> Save Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">User Profile</div>
+                <button class="modal-close" onclick="closeModal('userProfileModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-section">
+                    <div class="profile-upload">
+                        <img id="profilePreview" class="profile-image" src="https://via.placeholder.com/80x80/4361ee/ffffff?text=A" alt="Profile">
+                        <input type="file" id="profileImageInput" accept="image/*" onchange="handleProfileImageUpload(event)">
+                        <div class="upload-overlay">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group"><label class="form-label">Full Name</label><input id="userFullName" class="form-control" value="Admin User"></div>
+                <div class="form-group"><label class="form-label">Email</label><input id="userEmail" type="email" class="form-control" value="admin@school.com"></div>
+                <div class="form-group"><label class="form-label">Role</label><input id="userRole" class="form-control" value="Administrator"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="showNotification('Profile deleted (demo)', 'success'); closeModal('userProfileModal');"><i class="fas fa-trash"></i>Delete</button>
+                <button class="btn btn-primary" onclick="updateUserProfile()"><i class="fas fa-save"></i>Update</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Confirm Logout</div>
+                <button class="modal-close" onclick="closeModal('logoutModal')">&times;</button>
+            </div>
+            <div class="modal-body"><p>Are you sure you want to logout?</p></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('logoutModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Settings functionality
+        let settings = {
+            theme: 'light',
+            fontSize: 'medium',
+            sidebarPosition: 'left',
+            defaultLanguage: 'en',
+            currency: 'TZS',
+            dateFormat: 'dd/mm/yyyy',
+            autoSave: true,
+            emailNotifications: true,
+            pushNotifications: false,
+            soundNotifications: true,
+            sessionTimeout: 30
+        };
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('schoolSettings');
+            if (savedSettings) {
+                settings = { ...settings, ...JSON.parse(savedSettings) };
+                applySettings();
+            }
+        }
+
+        // Apply settings to UI
+        function applySettings() {
+            // Apply theme
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`[onclick="selectTheme('${settings.theme}')"]`).classList.add('active');
+            
+            // Apply other settings
+            document.getElementById('fontSize').value = settings.fontSize;
+            document.getElementById('sidebarPosition').value = settings.sidebarPosition;
+            document.getElementById('defaultLanguage').value = settings.defaultLanguage;
+            document.getElementById('currency').value = settings.currency;
+            document.getElementById('dateFormat').value = settings.dateFormat;
+            document.getElementById('sessionTimeout').value = settings.sessionTimeout;
+            
+            // Apply toggles
+            updateToggle('autoSave', settings.autoSave);
+            updateToggle('emailNotifications', settings.emailNotifications);
+            updateToggle('pushNotifications', settings.pushNotifications);
+            updateToggle('soundNotifications', settings.soundNotifications);
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Select theme
+        function selectTheme(theme) {
+            settings.theme = theme;
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.target.closest('.theme-card').classList.add('active');
+            
+            // Apply theme immediately
+            const themeLink = document.getElementById('theme-css');
+            themeLink.href = `../css/themes/${theme}-theme.css`;
+        }
+
+        // Toggle setting
+        function toggleSetting(element, settingName) {
+            element.classList.toggle('active');
+            settings[settingName] = element.classList.contains('active');
+        }
+
+        // Update toggle appearance
+        function updateToggle(settingName, value) {
+            const toggles = document.querySelectorAll(`[onclick*="${settingName}"]`);
+            toggles.forEach(toggle => {
+                if (value) {
+                    toggle.classList.add('active');
+                } else {
+                    toggle.classList.remove('active');
+                }
+            });
+        }
+
+        // Save all settings
+        function saveAllSettings() {
+            // Get form values
+            settings.fontSize = document.getElementById('fontSize').value;
+            settings.sidebarPosition = document.getElementById('sidebarPosition').value;
+            settings.defaultLanguage = document.getElementById('defaultLanguage').value;
+            settings.currency = document.getElementById('currency').value;
+            settings.dateFormat = document.getElementById('dateFormat').value;
+            settings.sessionTimeout = document.getElementById('sessionTimeout').value;
+            
+            // Save to localStorage
+            localStorage.setItem('schoolSettings', JSON.stringify(settings));
+            
+            showNotification('Settings saved successfully!', 'success');
+        }
+
+        // Security functions
+        function setup2FA() {
+            showNotification('2FA setup will be implemented in backend', 'info');
+        }
+
+        function changePassword() {
+            showNotification('Password change will be implemented in backend', 'info');
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Profile functions
+        function handleProfileImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profilePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateUserProfile() {
+            showNotification('Profile updated successfully!', 'success');
+            closeModal('userProfileModal');
+        }
+
+        function logout() {
+            closeModal('logoutModal');
+            if (window.authManager) {
+                window.authManager.logout();
+            } else {
+                // Fallback if authManager not available
+                showNotification('Logging out...', 'info');
+                setTimeout(() => {
+                    localStorage.removeItem('sms_session');
+                    localStorage.removeItem('sms_user');
+                    window.location.href = '../login.html';
+                }, 1000);
+            }
+        }
+
+        // Time update
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+
+        // Language toggle
+        function toggleLanguage() {
+            const currentLang = settings.defaultLanguage === 'en' ? 'sw' : 'en';
+            settings.defaultLanguage = currentLang;
+            document.getElementById('defaultLanguage').value = currentLang;
+            showNotification(`Language changed to ${currentLang === 'en' ? 'English' : 'Kiswahili'}`, 'success');
+        }
+
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            updateTime();
+            setInterval(updateTime, 1000);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveAllSettings();
+            }
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

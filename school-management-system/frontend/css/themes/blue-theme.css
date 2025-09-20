@@ -1,0 +1,221 @@
+/* Blue Theme */
+:root {
+    --primary-color: #3182ce;
+    --primary-hover: #2c5282;
+    --secondary-color: #4a5568;
+    --success-color: #38a169;
+    --danger-color: #e53e3e;
+    --warning-color: #d69e2e;
+    --info-color: #3182ce;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #bee3f8;
+    --bg-tertiary: #90cdf4;
+    
+    --text-primary: #1a365d;
+    --text-secondary: #2c5282;
+    --text-muted: #4a5568;
+    
+    --border-color: #90cdf4;
+    --border-hover: #63b3ed;
+    
+    --shadow-sm: 0 2px 4px rgba(49, 130, 206, 0.1);
+    --shadow-md: 0 4px 20px rgba(49, 130, 206, 0.15);
+    --shadow-lg: 0 10px 40px rgba(49, 130, 206, 0.2);
+    
+    --sidebar-bg: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+    --sidebar-text: #ffffff;
+    --sidebar-hover: rgba(255,255,255,0.1);
+    --sidebar-active: rgba(255,255,255,0.2);
+}
+
+/* Apply blue theme styles */
+body.blue-theme {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.blue-theme .sidebar {
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+.blue-theme .sidebar .menu-item:hover {
+    background: var(--sidebar-hover);
+}
+
+.blue-theme .sidebar .menu-item.active {
+    background: var(--sidebar-active);
+}
+
+.blue-theme .header {
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.blue-theme .header h1 {
+    color: var(--text-primary);
+}
+
+.blue-theme .language-toggle:hover,
+.blue-theme .user-profile:hover {
+    background: var(--bg-tertiary);
+}
+
+.blue-theme .settings-card,
+.blue-theme .modal-content {
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+.blue-theme .settings-card-header {
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border-bottom-color: var(--border-color);
+}
+
+.blue-theme .settings-card-header h3,
+.blue-theme .modal-title {
+    color: var(--text-primary);
+}
+
+.blue-theme .settings-card-header p {
+    color: var(--text-secondary);
+}
+
+.blue-theme .form-control {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.blue-theme .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.blue-theme .form-label {
+    color: var(--text-primary);
+}
+
+.blue-theme .theme-option {
+    border-color: var(--border-color);
+}
+
+.blue-theme .theme-option:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-tertiary);
+}
+
+.blue-theme .theme-option.active {
+    border-color: var(--primary-color);
+    background: rgba(49, 130, 206, 0.1);
+}
+
+.blue-theme .theme-info h4 {
+    color: var(--text-primary);
+}
+
+.blue-theme .theme-info p {
+    color: var(--text-secondary);
+}
+
+.blue-theme .notification-info h4,
+.blue-theme .security-info h4,
+.blue-theme .backup-info h4 {
+    color: var(--text-primary);
+}
+
+.blue-theme .notification-info p,
+.blue-theme .security-info p,
+.blue-theme .backup-info p {
+    color: var(--text-secondary);
+}
+
+.blue-theme .settings-tab {
+    color: var(--text-secondary);
+}
+
+.blue-theme .settings-tab:hover,
+.blue-theme .settings-tab.active {
+    color: var(--primary-color);
+    background: rgba(49, 130, 206, 0.1);
+}
+
+.blue-theme .settings-nav {
+    border-bottom-color: var(--border-color);
+}
+
+.blue-theme .settings-actions {
+    border-top-color: var(--border-color);
+}
+
+.blue-theme .notification-item,
+.blue-theme .security-item,
+.blue-theme .backup-item {
+    border-bottom-color: var(--border-color);
+}
+
+.blue-theme .btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.blue-theme .btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.blue-theme .btn-secondary {
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.blue-theme .btn-secondary:hover {
+    background: #2d3748;
+    border-color: #2d3748;
+}
+
+.blue-theme .notification.success {
+    background: var(--bg-primary);
+    border-left-color: var(--success-color);
+}
+
+.blue-theme .notification.error {
+    background: var(--bg-primary);
+    border-left-color: var(--danger-color);
+}
+
+.blue-theme .notification.warning {
+    background: var(--bg-primary);
+    border-left-color: var(--warning-color);
+}
+
+.blue-theme .modal-close:hover {
+    background: var(--bg-tertiary);
+}
+
+.blue-theme .modal-footer {
+    border-top-color: var(--border-color);
+}
+
+.blue-theme .toggle-label {
+    background: var(--border-color);
+}
+
+.blue-theme .toggle-switch input[type="checkbox"]:checked + .toggle-label {
+    background: var(--primary-color);
+}
+
+.blue-theme .radio-custom {
+    border-color: var(--border-color);
+}
+
+.blue-theme .radio-option input[type="radio"]:checked + .radio-custom {
+    border-color: var(--primary-color);
+}
+
+.blue-theme .radio-option input[type="radio"]:checked + .radio-custom::after {
+    background: var(--primary-color);
+}

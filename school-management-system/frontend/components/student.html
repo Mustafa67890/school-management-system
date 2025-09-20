@@ -1,0 +1,501 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students | School Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary:#4361ee; --secondary:#3f37c9; --success:#28a745; --warning:#f59e0b; --danger:#e11d48; --info:#0ea5e9; --light:#f8f9fa; --dark:#111827; --sidebar-width:250px; --header-height:70px; }
+        * { box-sizing:border-box; margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background:#f5f7fb; color:#333; }
+        .container { display:flex; min-height:100vh; }
+        .sidebar { width:var(--sidebar-width); background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff; position:fixed; inset:0 auto 0 0; overflow-y:auto; z-index:1000; }
+        .sidebar-header { padding:20px; border-bottom:1px solid rgba(255,255,255,.15); text-align:center; }
+        .sidebar-header h2 { display:flex; align-items:center; justify-content:center; gap:10px; font-size:20px; }
+        .admin-profile { padding:20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,.15); }
+        .admin-avatar { width:44px; height:44px; border-radius:50%; background:#fff; color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:700; }
+        .sidebar-menu { padding:10px 0 30px; }
+        .menu-section-title { opacity:.8; font-size:12px; padding:8px 20px; text-transform:uppercase; letter-spacing:.5px; }
+        .menu-item { display:flex; gap:12px; align-items:center; color:#fff; text-decoration:none; padding:12px 20px; border-left:4px solid transparent; transition:.2s; }
+        .menu-item i { width:20px; text-align:center; }
+        .menu-item:hover, .menu-item.active { background:rgba(255,255,255,.12); border-left-color:#fff; }
+        .main { margin-left:var(--sidebar-width); flex:1; min-width:0; }
+        .header { height:var(--header-height); background:#fff; position:sticky; top:0; z-index:900; display:flex; align-items:center; justify-content:space-between; padding:0 24px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+        .header h1 { display:flex; gap:10px; font-size:20px; color:var(--dark); align-items:center; }
+        .header-right { display:flex; gap:16px; align-items:center; }
+        .badge { padding:6px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:12px; }
+        .content { padding:24px; }
+        .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-bottom:20px; }
+        .card { background:#fff; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,.06); padding:16px; }
+        .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+        .card-title { font-weight:600; color:var(--dark); }
+        .card-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; }
+        .icon-green { background:var(--success); }
+        .icon-orange { background:var(--warning); }
+        .icon-blue { background:var(--info); }
+        .value { font-size:24px; font-weight:700; color:var(--dark); }
+        .muted { color:#6b7280; font-size:13px; }
+        .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px; }
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px; transition:.15s; }
+        .btn i { width:16px; text-align:center; }
+        .btn-primary { background:var(--primary); color:#fff; }
+        .btn-success { background:var(--success); color:#fff; }
+        .btn-warning { background:var(--warning); color:#111; }
+        .btn-danger { background:var(--danger); color:#fff; }
+        .btn-outline { background:#fff; color:#111; border:1px solid #e5e7eb; }
+        .filters { background:#fff; border-radius:12px; padding:12px; box-shadow:0 2px 6px rgba(0,0,0,.05); display:flex; gap:10px; flex-wrap:wrap; }
+        .input, select { padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:14px; }
+        table { width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,.05); }
+        thead th { background:#f8fafc; text-align:left; padding:12px; font-size:13px; color:#374151; }
+        tbody td { padding:12px; border-top:1px solid #f1f5f9; font-size:14px; }
+        tbody tr:hover { background:#f9fafb; }
+        .status { padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+        .paid { background:rgba(34,197,94,.12); color:#15803d; }
+        .partial { background:rgba(234,179,8,.15); color:#92400e; }
+        .due { background:rgba(239,68,68,.12); color:#b91c1c; }
+        .actions { display:flex; gap:8px; }
+        .hidden { display:none !important; }
+        .modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:2000; }
+        .modal.show { display:flex; }
+        .modal-card { width:min(560px,92vw); background:#fff; border-radius:12px; padding:18px; box-shadow:0 10px 25px rgba(0,0,0,.2); }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+        .close { background:none; border:none; font-size:22px; cursor:pointer; color:#6b7280; }
+        .grid { display:grid; gap:10px; grid-template-columns:repeat(2,1fr); }
+        .grid .full { grid-column:1/-1; }
+        label { font-size:13px; color:#374151; margin-bottom:4px; display:block; }
+        @media(max-width: 992px){ .sidebar{ width:72px; } .main{ margin-left:72px; } .menu-item span, .menu-section-title, .admin-info{ display:none; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-graduation-cap"></i><span>School Manager</span></h2>
+            </div>
+            <div class="admin-profile">
+                <div class="admin-avatar">A</div>
+                <div class="admin-info">
+                    <div style="font-weight:600">Admin User</div>
+                    <div style="opacity:.85; font-size:12px">Administrator</div>
+                </div>
+            </div>
+            <nav class="sidebar-menu">
+                <div class="menu-section-title">Main Navigation</div>
+                <a class="menu-item" href="../components/dashboard.html"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                <a class="menu-item active" href="./students.html"><i class="fas fa-users"></i><span>Students</span></a>
+                <a class="menu-item" href="#"><i class="fas fa-money-bill-wave"></i><span>Fees & Payments</span></a>
+                <div class="menu-section-title">Management</div>
+                <a class="menu-item" href="#"><i class="fas fa-chalkboard-teacher"></i><span>Staff & Payroll</span></a>
+                <a class="menu-item" href="#"><i class="fas fa-shopping-cart"></i><span>Procurement</span></a>
+                <a class="menu-item" href="#"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                <div class="menu-section-title">System</div>
+                <a class="menu-item" href="#"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+                <a class="menu-item" href="#"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a class="menu-item" href="#"><i class="fas fa-user-shield"></i><span>User Management</span></a>
+            </nav>
+        </aside>
+        <main class="main">
+            <header class="header">
+                <h1><i class="fas fa-users"></i> Students & Payments</h1>
+                <div class="header-right">
+                    <span id="current-time" class="badge">Loading...</span>
+                    <button class="btn btn-danger" onclick="window.location.href='../login.html'"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </header>
+            <section class="content">
+                <div class="cards">
+                    <div class="card" onclick="openSummary('collected')">
+                        <div class="card-header">
+                            <div class="card-title">Ada Zilizokusanywa</div>
+                            <div class="card-icon icon-green"><i class="fas fa-sack-dollar"></i></div>
+                        </div>
+                        <div class="value" id="sum-collected">TZS 0</div>
+                        <div class="muted">Total collected across Form 1 - 6</div>
+                    </div>
+                    <div class="card" onclick="openSummary('due')">
+                        <div class="card-header">
+                            <div class="card-title">Wanaodaiwa</div>
+                            <div class="card-icon icon-orange"><i class="fas fa-exclamation-circle"></i></div>
+                        </div>
+                        <div class="value" id="sum-due">TZS 0</div>
+                        <div class="muted">Outstanding balances</div>
+                    </div>
+                    <div class="card" onclick="openSummary('paid')">
+                        <div class="card-header">
+                            <div class="card-title">Wamelipa</div>
+                            <div class="card-icon icon-blue"><i class="fas fa-check-circle"></i></div>
+                        </div>
+                        <div class="value" id="sum-paid-count">0 Students</div>
+                        <div class="muted">Fully paid this term</div>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <button class="btn btn-primary" onclick="openPaymentModal()"><i class="fas fa-plus"></i> Add Payment</button>
+                    <button class="btn btn-success" onclick="openStudentModal()"><i class="fas fa-user-plus"></i> Add Student</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('importFile').click()"><i class="fas fa-file-import"></i> Import CSV</button>
+                    <input id="importFile" class="hidden" type="file" accept=".csv" onchange="importCSV(event)">
+                    <button class="btn btn-outline" onclick="exportCSV()"><i class="fas fa-file-export"></i> Export CSV</button>
+                    <button class="btn btn-outline" onclick="printTable()"><i class="fas fa-print"></i> Print</button>
+                    <div class="filters">
+                        <select id="filterClass" onchange="renderTable()">
+                            <option value="">All Classes</option>
+                            <option>Form 1</option>
+                            <option>Form 2</option>
+                            <option>Form 3</option>
+                            <option>Form 4</option>
+                            <option>Form 5</option>
+                            <option>Form 6</option>
+                        </select>
+                        <select id="filterStatus" onchange="renderTable()">
+                            <option value="">All Status</option>
+                            <option value="paid">Paid</option>
+                            <option value="partial">Partial</option>
+                            <option value="due">Due</option>
+                        </select>
+                        <input id="searchInput" class="input" placeholder="Search name..." oninput="renderTable()" />
+                    </div>
+                </div>
+
+                <table id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Class</th>
+                            <th>Required Fee</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- Student Modal -->
+    <div id="studentModal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="studentModalTitle">Add Student</h3>
+                <button class="close" onclick="closeModal('studentModal')">&times;</button>
+            </div>
+            <div class="grid">
+                <div>
+                    <label>Full Name</label>
+                    <input id="stName" class="input" placeholder="e.g., John Doe">
+                </div>
+                <div>
+                    <label>Class</label>
+                    <select id="stClass" class="input">
+                        <option>Form 1</option><option>Form 2</option><option>Form 3</option>
+                        <option>Form 4</option><option>Form 5</option><option>Form 6</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Required Fee (TZS)</label>
+                    <input id="stRequired" type="number" class="input" placeholder="e.g., 500000">
+                </div>
+                <div>
+                    <label>Initial Paid (TZS)</label>
+                    <input id="stPaid" type="number" class="input" value="0">
+                </div>
+                <div class="full" style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+                    <button class="btn btn-outline" onclick="closeModal('studentModal')">Cancel</button>
+                    <button id="studentSaveBtn" class="btn btn-primary" onclick="saveStudent()"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Add Payment</h3>
+                <button class="close" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <div class="grid">
+                <div class="full">
+                    <label>Student</label>
+                    <select id="pmStudent" class="input"></select>
+                </div>
+                <div>
+                    <label>Amount (TZS)</label>
+                    <input id="pmAmount" type="number" class="input" placeholder="e.g., 150000">
+                </div>
+                <div>
+                    <label>Date</label>
+                    <input id="pmDate" type="date" class="input">
+                </div>
+                <div class="full" style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+                    <button class="btn btn-outline" onclick="closeModal('paymentModal')">Cancel</button>
+                    <button class="btn btn-success" onclick="savePayment()"><i class="fas fa-check"></i> Record</button>
+                    <button class="btn btn-warning" onclick="printReceipt()"><i class="fas fa-receipt"></i> Print Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Modal -->
+    <div id="summaryModal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="summaryTitle">Summary</h3>
+                <button class="close" onclick="closeModal('summaryModal')">&times;</button>
+            </div>
+            <div class="full" id="summaryList"></div>
+        </div>
+    </div>
+
+    <script>
+        const fmtTZS = v => 'TZS ' + (v||0).toLocaleString();
+        const now = () => new Date().toLocaleString();
+        document.getElementById('current-time').textContent = now();
+        setInterval(()=>{ document.getElementById('current-time').textContent = now(); }, 1000);
+
+        let students = [
+            { id: cid(), name:'John Doe', klass:'Form 1', required:600000, paid:300000 },
+            { id: cid(), name:'Jane Smith', klass:'Form 2', required:650000, paid:650000 },
+            { id: cid(), name:'Ali Musa', klass:'Form 4', required:750000, paid:200000 },
+            { id: cid(), name:'Asha Peter', klass:'Form 5', required:900000, paid:900000 }
+        ];
+        let editId = null;
+
+        function cid(){ return Math.random().toString(36).slice(2,10); }
+
+        function recalc(){
+            const collected = students.reduce((s,x)=>s+(x.paid||0),0);
+            const due = students.reduce((s,x)=>s+Math.max((x.required||0)-(x.paid||0),0),0);
+            const paidCount = students.filter(x => (x.paid||0) >= (x.required||0) && x.required>0).length;
+            document.getElementById('sum-collected').textContent = fmtTZS(collected);
+            document.getElementById('sum-due').textContent = fmtTZS(due);
+            document.getElementById('sum-paid-count').textContent = paidCount + ' Students';
+        }
+
+        function statusOf(st){
+            if((st.paid||0) <= 0) return 'due';
+            if((st.paid||0) >= (st.required||0)) return 'paid';
+            return 'partial';
+        }
+
+        function renderTable(){
+            const tbody = document.querySelector('#studentsTable tbody');
+            const q = (document.getElementById('searchInput').value||'').toLowerCase();
+            const fc = document.getElementById('filterClass').value;
+            const fs = document.getElementById('filterStatus').value;
+            tbody.innerHTML = '';
+            students
+              .filter(s => (!q || s.name.toLowerCase().includes(q)))
+              .filter(s => (!fc || s.klass === fc))
+              .filter(s => (!fs || statusOf(s) === fs))
+              .forEach(s => {
+                const bal = Math.max((s.required||0)-(s.paid||0),0);
+                const st = statusOf(s);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.name}</td>
+                    <td>${s.klass}</td>
+                    <td>${fmtTZS(s.required)}</td>
+                    <td>${fmtTZS(s.paid)}</td>
+                    <td>${fmtTZS(bal)}</td>
+                    <td><span class="status ${st}">${st.toUpperCase()}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-outline" title="View" onclick="viewStudent('${s.id}')"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-primary" title="Edit" onclick="editStudent('${s.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger" title="Delete" onclick="deleteStudent('${s.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+            recalc();
+            populateStudentSelect();
+        }
+
+        function populateStudentSelect(){
+            const sel = document.getElementById('pmStudent');
+            sel.innerHTML = students.map(s=>`<option value="${s.id}">${s.name} - ${s.klass}</option>`).join('');
+        }
+
+        function openStudentModal(){
+            editId = null;
+            document.getElementById('studentModalTitle').textContent = 'Add Student';
+            document.getElementById('stName').value = '';
+            document.getElementById('stClass').value = 'Form 1';
+            document.getElementById('stRequired').value = '';
+            document.getElementById('stPaid').value = 0;
+            openModal('studentModal');
+        }
+
+        function editStudent(id){
+            const s = students.find(x=>x.id===id); if(!s) return;
+            editId = id;
+            document.getElementById('studentModalTitle').textContent = 'Edit Student';
+            document.getElementById('stName').value = s.name;
+            document.getElementById('stClass').value = s.klass;
+            document.getElementById('stRequired').value = s.required;
+            document.getElementById('stPaid').value = s.paid;
+            openModal('studentModal');
+        }
+
+        function saveStudent(){
+            const name = document.getElementById('stName').value.trim();
+            const klass = document.getElementById('stClass').value;
+            const required = Number(document.getElementById('stRequired').value||0);
+            const paid = Number(document.getElementById('stPaid').value||0);
+            if(!name){ alert('Name required'); return; }
+            if(editId){
+                const s = students.find(x=>x.id===editId);
+                s.name=name; s.klass=klass; s.required=required; s.paid=paid;
+            } else {
+                students.unshift({ id: cid(), name, klass, required, paid });
+            }
+            closeModal('studentModal');
+            renderTable();
+        }
+
+        function viewStudent(id){
+            const s = students.find(x=>x.id===id); if(!s) return;
+            alert(`${s.name} | ${s.klass}\nRequired: ${fmtTZS(s.required)}\nPaid: ${fmtTZS(s.paid)}\nBalance: ${fmtTZS(Math.max(s.required-s.paid,0))}`);
+        }
+
+        function deleteStudent(id){
+            if(!confirm('Delete this student?')) return;
+            students = students.filter(x=>x.id!==id);
+            renderTable();
+        }
+
+        function openPaymentModal(){
+            document.getElementById('pmAmount').value='';
+            document.getElementById('pmDate').value = new Date().toISOString().slice(0,10);
+            openModal('paymentModal');
+        }
+
+        function savePayment(){
+            const id = document.getElementById('pmStudent').value;
+            const amt = Number(document.getElementById('pmAmount').value||0);
+            if(!id || !amt){ alert('Select student and enter amount'); return; }
+            const s = students.find(x=>x.id===id); s.paid = (s.paid||0) + amt;
+            closeModal('paymentModal');
+            renderTable();
+        }
+
+        function printReceipt(){
+            const id = document.getElementById('pmStudent').value;
+            const amt = Number(document.getElementById('pmAmount').value||0);
+            const dt = document.getElementById('pmDate').value || new Date().toISOString().slice(0,10);
+            const s = students.find(x=>x.id===id); if(!s){ alert('Select student'); return; }
+            const win = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150');
+            win.document.write(`<html><head><title>Receipt</title></head><body>`);
+            win.document.write(`<h2 style='font-family:Segoe UI'>School Manager - Receipt</h2>`);
+            win.document.write(`<p>Student: <b>${s.name}</b> (${s.klass})</p>`);
+            win.document.write(`<p>Amount: <b>${fmtTZS(amt)}</b></p>`);
+            win.document.write(`<p>Date: ${dt}</p>`);
+            win.document.write(`<hr><p>Total Paid: ${fmtTZS(s.paid)}</p>`);
+            win.document.write(`</body></html>`);
+            win.document.close(); win.focus(); win.print(); win.close();
+        }
+
+        function exportCSV(){
+            const rows = [['Full Name','Class','Required Fee','Paid','Balance','Status']]
+                .concat(students.map(s=>[
+                    s.name, s.klass, s.required, s.paid, Math.max(s.required-s.paid,0), statusOf(s)
+                ]));
+            const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href=url; a.download='students_payments.csv'; a.click(); URL.revokeObjectURL(url);
+        }
+
+        function importCSV(ev){
+            const file = ev.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                const lines = reader.result.split(/\r?\n/).filter(Boolean);
+                const [h,...rest] = lines; // expect header
+                rest.forEach(line=>{
+                    const cols = parseCSVLine(line);
+                    const [name,klass,required,paid] = cols;
+                    if(!name) return;
+                    students.push({ id: cid(), name, klass, required:Number(required||0), paid:Number(paid||0) });
+                });
+                renderTable();
+                ev.target.value='';
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSVLine(line){
+            const out=[]; let cur=''; let q=false;
+            for(let i=0;i<line.length;i++){
+                const ch=line[i];
+                if(ch==='"') { if(q && line[i+1]==='"'){ cur+='"'; i++; } else { q=!q; } }
+                else if(ch===',' && !q){ out.push(cur); cur=''; }
+                else cur+=ch;
+            }
+            out.push(cur); return out;
+        }
+
+        function printTable(){
+            const html = document.getElementById('studentsTable').outerHTML;
+            const win = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150');
+            win.document.write(`<html><head><title>Students Payments</title></head><body>${html}</body></html>`);
+            win.document.close(); win.focus(); win.print(); win.close();
+        }
+
+        function openSummary(type){
+            const list = document.getElementById('summaryList');
+            let arr = [];
+            if(type==='collected'){ arr = students.filter(()=>true); document.getElementById('summaryTitle').textContent='Collected - All Students'; }
+            if(type==='due'){ arr = students.filter(s => statusOf(s)!=='paid'); document.getElementById('summaryTitle').textContent='Outstanding - Due/Partial'; }
+            if(type==='paid'){ arr = students.filter(s => statusOf(s)==='paid'); document.getElementById('summaryTitle').textContent='Fully Paid'; }
+            list.innerHTML = `<div style='max-height:60vh; overflow:auto'>
+                <table style='width:100%; border-collapse:collapse'>
+                    <thead><tr>
+                        <th style='text-align:left;padding:8px;background:#f3f4f6'>Name</th>
+                        <th style='text-align:left;padding:8px;background:#f3f4f6'>Class</th>
+                        <th style='text-align:left;padding:8px;background:#f3f4f6'>Required</th>
+                        <th style='text-align:left;padding:8px;background:#f3f4f6'>Paid</th>
+                        <th style='text-align:left;padding:8px;background:#f3f4f6'>Balance</th>
+                    </tr></thead>
+                    <tbody>
+                        ${arr.map(s=>`<tr>
+                            <td style='padding:8px;border-top:1px solid #e5e7eb'>${s.name}</td>
+                            <td style='padding:8px;border-top:1px solid #e5e7eb'>${s.klass}</td>
+                            <td style='padding:8px;border-top:1px solid #e5e7eb'>${fmtTZS(s.required)}</td>
+                            <td style='padding:8px;border-top:1px solid #e5e7eb'>${fmtTZS(s.paid)}</td>
+                            <td style='padding:8px;border-top:1px solid #e5e7eb'>${fmtTZS(Math.max(s.required-s.paid,0))}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+                <div style='margin-top:10px; display:flex; gap:8px; justify-content:flex-end;'>
+                    <button class='btn btn-outline' onclick="exportSubset('${type}')"><i class='fas fa-file-export'></i> Export CSV</button>
+                </div>
+            </div>`;
+            openModal('summaryModal');
+        }
+
+        function exportSubset(type){
+            let arr=[]; if(type==='paid') arr=students.filter(s=>statusOf(s)==='paid');
+            if(type==='due') arr=students.filter(s=>statusOf(s)!=='paid');
+            if(type==='collected') arr=students.slice();
+            const rows = [['Full Name','Class','Required Fee','Paid','Balance','Status']]
+              .concat(arr.map(s=>[s.name,s.klass,s.required,s.paid,Math.max(s.required-s.paid,0),statusOf(s)]));
+            const csv = rows.map(r=>r.join(',')).join('\n');
+            const blob = new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
+            const a=document.createElement('a'); a.href=url; a.download=`students_${type}.csv`; a.click(); URL.revokeObjectURL(url);
+        }
+
+        function openModal(id){ document.getElementById(id).classList.add('show'); }
+        function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+        // init
+        renderTable();
+    </script>
+</body>
+</html>

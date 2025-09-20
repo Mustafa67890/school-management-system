@@ -1,0 +1,50 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: school-management-db
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.db
+    
+  # PHP Backend API
+  - type: web
+    name: school-management-api
+    env: php
+    plan: free
+    buildCommand: composer install --no-dev --optimize-autoloader
+    startCommand: php -S 0.0.0.0:$PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: school-management-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: school-management-db
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: school-management-db
+          property: database
+      - key: DATABASE_USER
+        fromDatabase:
+          name: school-management-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: school-management-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+        
+  # Static Frontend
+  - type: static
+    name: school-management-frontend
+    staticPublishPath: ./frontend
+    buildCommand: echo "No build needed for static files"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

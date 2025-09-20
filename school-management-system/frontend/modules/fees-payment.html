@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fees & Payments Module - School Manager System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/modules/fees-payment.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="../js/auth-manager.js"></script>
+    <script src="../js/global-navigation.js"></script>
+    <!-- Simple SPA Router Styles (breadcrumbs) -->
+    <style>
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.info {
+            background: #17a2b8;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.show {
+            display: flex !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="sidebar-header">
+                <h2>
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>School Manager</span>
+                </h2>
+            </div>
+            <div class="admin-profile">
+                <div class="admin-avatar">A</div>
+                <div class="admin-info">
+                    <h4>Admin User</h4>
+                    <p>Administrator</p>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-section">
+                    <div class="menu-section-title">Main Navigation</div>
+                    <a href="../index.html" class="menu-item" onclick="navigateToPage('../index.html')">
+                        <i class="fas fa-home"></i>
+                        <span data-translate="dashboard">Dashboard</span>
+                    </a>
+                    <a href="./student-module.html" class="menu-item" onclick="navigateToPage('./student-module.html')">
+                        <i class="fas fa-users"></i>
+                        <span data-translate="students">Students</span>
+                    </a>
+                    <a href="./fees-payment.html" class="menu-item active">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span data-translate="fees_payments">Fees & Payments</span>
+                    </a>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">Management</div>
+                    <a href="./staff-payroll.html" class="menu-item" onclick="navigateToPage('./staff-payroll.html')">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span data-translate="staff_payroll">Staff & Payroll</span>
+                    </a>
+                    <a href="./procurement.html" class="menu-item" onclick="navigateToPage('./procurement.html')">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span data-translate="procurement">Procurement</span>
+                    </a>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">System</div>
+                    <a href="reports.html" class="menu-item" onclick="navigateToModule('reports.html')">
+                        <i class="fas fa-chart-bar"></i>
+                        <span data-translate="reports">Reports</span>
+                    </a>
+                    <a href="settings.html" class="menu-item" onclick="navigateToModule('settings.html')">
+                        <i class="fas fa-cog"></i>
+                        <span data-translate="settings">Settings</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <h1><i class="fas fa-money-bill-wave"></i><span data-translate="fees_payments_module"> Fees & Payments Module</span></h1>
+                </div>
+                <div class="header-right">
+                    <button class="language-toggle" onclick="toggleLanguage()">
+                        <i class="fas fa-language"></i>
+                        <span id="language-text">EN</span>
+                    </button>
+                    <div class="current-time">
+                        <i class="fas fa-clock"></i>
+                        <span id="current-time">Loading...</span>
+                    </div>
+                    <div class="user-profile" onclick="openModal('userProfileModal')">
+                        <img id="userProfileImage" class="user-avatar" src="" alt="Profile" style="display: none; width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <span id="userName">Admin</span>
+                    </div>
+                    <button class="btn btn-danger" onclick="openModal('logoutModal')">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span data-translate="logout">Logout</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards Summary -->
+            <div class="content">
+                <div class="dashboard-cards">
+                    <div class="card" onclick="applyQuickFilter('all')">
+                        <div class="card-header">
+                            <div class="card-title" data-translate="total_fees_collected">Total Fees Collected</div>
+                            <div class="card-icon total"><i class="fas fa-sack-dollar"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-value" id="cardTotalCollected">TZS 0</div>
+                            <div class="card-description" data-translate="overall_collections">Overall collections across Forms 1-6</div>
+                        </div>
+                    </div>
+                    <div class="card" onclick="applyQuickFilter('paid')">
+                        <div class="card-header">
+                            <div class="card-title" data-translate="fully_paid">Fully Paid</div>
+                            <div class="card-icon paid"><i class="fas fa-badge-check"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-value" id="cardFullyPaid">0</div>
+                            <div class="card-description" data-translate="students_zero_balance">Students with zero balance</div>
+                        </div>
+                    </div>
+                    <div class="card" onclick="applyQuickFilter('partial')">
+                        <div class="card-header">
+                            <div class="card-title" data-translate="partial_payments">Partial Payments</div>
+                            <div class="card-icon partial"><i class="fas fa-money-bill-wave"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-value" id="cardPartial">0</div>
+                            <div class="card-description" data-translate="students_paid_partially">Students who paid partially</div>
+                        </div>
+                    </div>
+                    <div class="card" onclick="applyQuickFilter('owing')">
+                        <div class="card-header">
+                            <div class="card-title" data-translate="owing">Owing</div>
+                            <div class="card-icon owing"><i class="fas fa-triangle-exclamation"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-value" id="cardOwing">0</div>
+                            <div class="card-description" data-translate="students_outstanding_fees">Students with outstanding fees</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <button class="btn btn-primary" onclick="openModal('recordModal')"><i class="fas fa-plus"></i><span data-translate="add_new_record">Add New Record</span></button>
+                    <button class="btn btn-success" onclick="openModal('feesModal')"><i class="fas fa-gear"></i><span data-translate="set_fee_amounts">Set Fee Amounts</span></button>
+                    <button class="btn btn-danger" onclick="deleteSelectedRecords()" id="deleteSelectedBtn" style="display: none;"><i class="fas fa-trash"></i><span data-translate="delete_selected">Delete Selected</span></button>
+                    <input id="fileImport" class="hidden" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" onchange="handleImport(event)">
+                    <button class="btn btn-outline" onclick="document.getElementById('fileImport').click()"><i class="fas fa-file-import"></i><span data-translate="import">Import</span></button>
+                    <button class="btn btn-outline" onclick="exportCSV()"><i class="fas fa-file-csv"></i>CSV</button>
+                    <button class="btn btn-outline" onclick="exportXLSX()"><i class="fas fa-file-excel"></i>Excel</button>
+                    <button class="btn btn-outline" onclick="exportPDF()"><i class="fas fa-file-pdf"></i>PDF</button>
+                    <button class="btn btn-warning" onclick="printReceiptBulk()"><i class="fas fa-print"></i><span data-translate="print_receipts">Print Receipts</span></button>
+                    <button class="btn btn-info" onclick="toggleCharts()" id="toggleChartsBtn"><i class="fas fa-chart-bar"></i><span data-translate="show_charts">Show Charts</span></button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters">
+                    <select id="filterForm" class="form-control w-160" onchange="renderTable()">
+                        <option value="">All Forms</option>
+                        <option>Form 1</option>
+                        <option>Form 2</option>
+                        <option>Form 3</option>
+                        <option>Form 4</option>
+                        <option>Form 5</option>
+                        <option>Form 6</option>
+                    </select>
+                    <select id="filterStatus" class="form-control w-160" onchange="renderTable()">
+                        <option value="">All Status</option>
+                        <option value="paid">Fully Paid</option>
+                        <option value="partial">Partial</option>
+                        <option value="owing">Owing</option>
+                    </select>
+                    <input id="searchInput" class="form-control" style="flex:1;" placeholder="Search by name or class" oninput="renderTable()">
+                </div>
+
+                <!-- Charts Section -->
+                <div id="chartsSection" class="charts-section" style="display: none;">
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Payment Status Distribution</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="statusChart" width="300" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Collections by Form</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="formChart" width="300" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Monthly Collections Trend</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="trendChart" width="300" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrap">
+                    <table id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" onclick="toggleSelectAll(this)" id="selectAllCheckbox"></th>
+                                <th>Full Name</th>
+                                <th>Class</th>
+                                <th>Paid (TZS)</th>
+                                <th>Balance (TZS)</th>
+                                <th>Total Due (TZS)</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="recordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="recordModalTitle">Add Payment Record</div>
+                <button class="modal-close" onclick="closeModal('recordModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editIndex">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input id="studentName" class="form-control" placeholder="e.g. John Doe">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Class</label>
+                    <select id="studentClass" class="form-control">
+                        <option>Form 1</option>
+                        <option>Form 2</option>
+                        <option>Form 3</option>
+                        <option>Form 4</option>
+                        <option>Form 5</option>
+                        <option>Form 6</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount Paid (TZS)</label>
+                    <input id="amountPaid" type="number" min="0" class="form-control" placeholder="e.g. 150000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Receipt No.</label>
+                    <input id="receiptNo" class="form-control" placeholder="Auto or custom">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Date</label>
+                    <input id="paymentDate" type="date" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('recordModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveRecord()"><i class="fas fa-save"></i>Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="feesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Set Fee Amounts (TZS)</div>
+                <button class="modal-close" onclick="closeModal('feesModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">Form 1</label><input id="feeF1" type="number" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Form 2</label><input id="feeF2" type="number" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Form 3</label><input id="feeF3" type="number" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Form 4</label><input id="feeF4" type="number" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Form 5</label><input id="feeF5" type="number" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Form 6</label><input id="feeF6" type="number" class="form-control"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('feesModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveFees()"><i class="fas fa-check"></i>Save Fees</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Confirm Delete</div>
+                <button class="modal-close" onclick="closeModal('confirmModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to delete?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('confirmModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()"><i class="fas fa-trash"></i>Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">User Profile</div>
+                <button class="modal-close" onclick="closeModal('userProfileModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" data-translate="profile_picture">Profile Picture</label>
+                    <div class="profile-upload">
+                        <img id="profilePreview" class="profile-image" src="https://via.placeholder.com/80x80/4361ee/ffffff?text=A" alt="Profile">
+                        <input type="file" id="profileImageInput" accept="image/*" onchange="handleProfileImageUpload(event)">
+                        <div class="upload-overlay">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group"><label class="form-label" data-translate="full_name">Full Name</label><input id="userFullName" class="form-control" value="Admin User"></div>
+                <div class="form-group"><label class="form-label" data-translate="email">Email</label><input id="userEmail" type="email" class="form-control" value="admin@school.com"></div>
+                <div class="form-group"><label class="form-label" data-translate="role">Role</label><input id="userRole" class="form-control" value="Administrator"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="showNotification('Profile deleted (demo)', 'success'); closeModal('userProfileModal');"><i class="fas fa-trash"></i>Delete</button>
+                <button class="btn btn-primary" onclick="updateUserProfile()"><i class="fas fa-save"></i>Update</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Confirm Logout</div>
+                <button class="modal-close" onclick="closeModal('logoutModal')">&times;</button>
+            </div>
+            <div class="modal-body"><p>Are you sure you want to logout?</p></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('logoutModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmLogout()"><i class="fas fa-sign-out-alt"></i>Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="paymentDetailsModal" class="modal payment-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Payment Details</div>
+                <button class="modal-close" onclick="closeModal('paymentDetailsModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="paymentDetailsBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('paymentDetailsModal')">Close</button>
+                <button class="btn btn-primary" onclick="editFromDetails()"><i class="fas fa-edit"></i>Edit Payment</button>
+                <button class="btn btn-success" onclick="printFromDetails()"><i class="fas fa-print"></i>Print Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="managerReceiptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Print Receipt</div>
+                <button class="modal-close" onclick="closeModal('managerReceiptModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="manager-input">
+                    <label for="managerName">Manager Name:</label>
+                    <input type="text" id="managerName" placeholder="Enter manager name for receipt" value="">
+                </div>
+                <div class="manager-input">
+                    <label for="receiptNotes">Additional Notes (Optional):</label>
+                    <input type="text" id="receiptNotes" placeholder="Any additional notes for this receipt">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('managerReceiptModal')">Cancel</button>
+                <button class="btn btn-success" onclick="confirmPrintReceipt()"><i class="fas fa-print"></i>Print Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/auth-manager.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/modules/fees-payment-core.js"></script>
+    <script src="../js/modules/fees-payment-functions.js"></script>
+    <script>
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...');
+            
+            // Wait a bit for all scripts to load
+            setTimeout(() => {
+                console.log('Checking functions...');
+                console.log('renderTable exists:', typeof window.renderTable);
+                console.log('renderAll exists:', typeof window.renderAll);
+                console.log('updateCards exists:', typeof window.updateCards);
+                console.log('handleImport exists:', typeof window.handleImport);
+                
+                if (typeof window.renderTable === 'function') {
+                    console.log('Calling renderTable...');
+                    window.renderTable();
+                } else {
+                    console.error('renderTable function not found!');
+                }
+                
+                if (typeof window.updateCards === 'function') {
+                    console.log('Calling updateCards...');
+                    window.updateCards();
+                } else {
+                    console.error('updateCards function not found!');
+                }
+            }, 200);
+        });
+    </script>
+</body>
+</html>
