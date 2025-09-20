@@ -1,0 +1,42 @@
+services:
+  # Web Service (Frontend + Backend)
+  - type: web
+    name: school-management-system
+    env: php
+    plan: free
+    buildCommand: ./build.sh
+    startCommand: ./start.sh
+    envVars:
+      - key: PHP_VERSION
+        value: "8.1"
+      - key: DB_HOST
+        fromDatabase:
+          name: school-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: school-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: school-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: school-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: school-db
+          property: password
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+
+  # Database Service
+databases:
+  - name: school-db
+    databaseName: school_management_db
+    user: school_admin
+    plan: free
